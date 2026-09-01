@@ -153,8 +153,41 @@ function getConfig(ss) {
       present[key] = true;
     }
   });
+  decorateConfigSheet_(sheet, data.length, present, config);
+
   cache.put('config', JSON.stringify(config), 300);
   return config;
+}
+
+/** Idempotent Config-sheet decoration: the "go to web form" link row and the
+ *  hover notes. Both are presence-checked so a cache miss (every 5 min) does
+ *  not turn into a write. Never throws — a cosmetic touch must not take the
+ *  app down. */
+function decorateConfigSheet_(sheet, rowCount, present, config) {
+  try {
+    // ── "go to web form" link ──────────────────────────────────────────
+    if (!present['web_form']) {
+      const formula = webFormFormula_((COURSE.urls && COURSE.urls.form) || '');
+      if (formula) {
+        sheet.appendRow(['web_form', '']);
+        sheet.getRange(rowCount + 1, 2).setFormula(formula);
+        config['web_form'] = 'go to web form';
+        rowCount++;
+      }
+    }
+
+    // ── Hover notes on the key cells ───────────────────────────────────
+    const keys = sheet.getRange(1, 1, rowCount, 1).getValues();
+    for (let i = 1; i < keys.length; i++) {
+      const key = String(keys[i][0] || '').trim();
+      const want = CONFIG_NOTES[key];
+      if (!want) continue;
+      const cell = sheet.getRange(i + 1, 1);
+      if (cell.getNote() !== want) cell.setNote(want);
+    }
+  } catch (err) {
+    console.error('decorateConfigSheet_ skipped: ' + err);
+  }
 }
 
 function getRoster(ss) {
@@ -864,6 +897,30 @@ function isTestTeam_(label) {
   return TEST_TEAM_LABELS.indexOf(String(label || '').trim().toLowerCase()) >= 0;
 }
 
+/** Hover notes for Config keys, applied to the key cell (column A).
+ *  Instructors read the Config tab without the README in front of them. */
+const CONFIG_NOTES = {
+  flag_threshold:
+    'Only used when grading_mode is "flag_only".\n\n' +
+    'Each student\'s average peer bonus is compared to an even split of $1,000 ' +
+    'across their teammates (a team of 4 -> $333 each). Anyone who received ' +
+    'less than this fraction of an even share is flagged for your review.\n\n' +
+    '0.75 flags students below 75% of an even share.\n\n' +
+    'Ignored in "bonus_ratio" mode.'
+};
+
+/** Build the Config sheet's "go to web form" link from COURSE.urls.form.
+ *  Returns null when that URL is still the config.js placeholder or is
+ *  otherwise not a real https link — a link that looks clickable and goes
+ *  nowhere is worse than no link, and the row appears on its own once the
+ *  real exec URL is filled in. */
+function webFormFormula_(url) {
+  const u = String(url == null ? '' : url).trim();
+  if (u.indexOf('https://') !== 0) return null;
+  // A literal " inside a Sheets formula string is escaped by doubling it.
+  return '=HYPERLINK("' + u.replace(/"/g, '""') + '","go to web form")';
+}
+
 /** A blank, whitespace-only or missing team cell means "not assigned yet" —
  *  never a team. Grouping blanks together would make unassigned students look
  *  like a real team to each other. */
@@ -1454,6 +1511,8 @@ if (typeof module !== 'undefined' && module.exports) {
     folderIdFromConfig_: folderIdFromConfig_,
     hasTeam_: hasTeam_,
     resolveRosterView_: resolveRosterView_,
-    gradebookRoster_: gradebookRoster_
+    gradebookRoster_: gradebookRoster_,
+    webFormFormula_: webFormFormula_,
+    CONFIG_NOTES: CONFIG_NOTES
   };
 }
