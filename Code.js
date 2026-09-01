@@ -153,7 +153,7 @@ function getConfig(ss) {
       present[key] = true;
     }
   });
-  decorateConfigSheet_(sheet, present, config);
+  decorateConfigSheet_(sheet, config);
 
   cache.put('config', JSON.stringify(config), 300);
   return config;
@@ -163,32 +163,53 @@ function getConfig(ss) {
  *  hover notes. Both are presence-checked so a cache miss (every 5 min) does
  *  not turn into a write. Never throws — a cosmetic touch must not take the
  *  app down. */
-function decorateConfigSheet_(sheet, present, config) {
+function decorateConfigSheet_(sheet, config) {
   try {
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return;
+
+    // One read of the key column drives both the links and the notes. Row
+    // numbers must come from here rather than from getConfig's earlier read:
+    // getConfig appends any missing default keys before calling us, so a count
+    // taken before that would point setFormula at the wrong cell.
+    const keys = sheet.getRange(1, 1, lastRow, 1).getValues();
+    const rowOf = {};
+    for (let i = 1; i < keys.length; i++) {
+      const k = String(keys[i][0] || '').trim();
+      if (k && !(k in rowOf)) rowOf[k] = i + 1;
+    }
+
     // ── Link rows ──────────────────────────────────────────────────────
-    // Row positions come from getLastRow(), never from the caller's earlier
-    // read: getConfig appends missing default keys before calling us, so a
-    // count taken before that would point setFormula at the wrong cell.
     CONFIG_LINKS.forEach(function (link) {
-      if (present[link.key]) return;
       const formula = configLinkFormula_(link.url(), link.text);
       if (!formula) return;   // URL not filled in yet — try again next time
-      sheet.appendRow([link.key, '']);
-      sheet.getRange(sheet.getLastRow(), 2).setFormula(formula);
+
+      const row = rowOf[link.key];
+      // Keyed on the VALUE, not just row presence: appendRow and setFormula
+      // are separate calls, so a failure between them (or an instructor
+      // clearing the cell by hand) leaves the key with a blank value. A
+      // presence-only check would skip that row forever and the link would
+      // never come back.
+      if (row && String(config[link.key] || '').trim() !== '') return;
+
+      if (row) {
+        sheet.getRange(row, 2).setFormula(formula);
+      } else {
+        sheet.appendRow([link.key, '']);
+        const added = sheet.getLastRow();
+        sheet.getRange(added, 2).setFormula(formula);
+        rowOf[link.key] = added;
+      }
       config[link.key] = link.text;
     });
 
     // ── Hover notes on the key cells ───────────────────────────────────
-    const lastRow = sheet.getLastRow();
-    if (lastRow < 2) return;
-    const keys = sheet.getRange(1, 1, lastRow, 1).getValues();
-    for (let i = 1; i < keys.length; i++) {
-      const key = String(keys[i][0] || '').trim();
-      const want = CONFIG_NOTES[key];
-      if (!want) continue;
-      const cell = sheet.getRange(i + 1, 1);
-      if (cell.getNote() !== want) cell.setNote(want);
-    }
+    Object.keys(CONFIG_NOTES).forEach(function (key) {
+      const row = rowOf[key];
+      if (!row) return;
+      const cell = sheet.getRange(row, 1);
+      if (cell.getNote() !== CONFIG_NOTES[key]) cell.setNote(CONFIG_NOTES[key]);
+    });
   } catch (err) {
     console.error('decorateConfigSheet_ skipped: ' + err);
   }
@@ -236,9 +257,11 @@ function submitPeerEval(data) {
       return { success: false, error: 'Submission rejected: you are not listed in the course roster.' };
     }
 
-    // A rostered non-admin with no team has no legitimate teammates to review.
-    // Catches a tab left open from before the instructor fixed their team.
     const submitterRow = roster.find(p => p.email.toLowerCase() === submitterEmail);
+
+    // A rostered non-admin with no team has no legitimate teammates to review.
+    // This is the "instructor has not fixed it yet" case; it says so plainly
+    // rather than the generic rejection below.
     if (submitterRow && !isAdmin && !hasTeam_(submitterRow.section)) {
       return { success: false, error: 'Submission rejected: you do not have a team assignment yet. Please contact your instructor.' };
     }
@@ -255,6 +278,11 @@ function submitPeerEval(data) {
     if (!data || !Array.isArray(data.teammates) || data.teammates.length === 0) {
       return { success: false, error: 'Submission rejected: invalid data structure.' };
     }
+
+    // Recipients come from the client and are written straight into Responses,
+    // so they must be checked against the roster before anything is recorded.
+    const recipientError = validateRecipients_(data.teammates, roster, submitterEmail, isAdmin);
+    if (recipientError) return { success: false, error: recipientError };
 
     // Validate reflections
     const r = data.reflections || {};
@@ -901,6 +929,43 @@ function isTestTeam_(label) {
   return TEST_TEAM_LABELS.indexOf(String(label || '').trim().toLowerCase()) >= 0;
 }
 
+/** Who a submitter is allowed to review, enforced server-side.
+ *  Recipients arrive from the client, so a stale tab — or anyone willing to
+ *  craft a request — can otherwise record dollars for people who are not on
+ *  the submitter's team, or for themselves. The allowed set comes from
+ *  resolveRosterView_, the same rule doGet used to build their form, so the
+ *  two can never drift apart.
+ *  Returns null when the submission is acceptable, else a message for the
+ *  student. The message deliberately names no other roster member. */
+function validateRecipients_(teammates, roster, submitterEmail, isAdmin) {
+  const REJECT = 'Submission rejected: it lists teammates who are not on your ' +
+                 'team. Your page may be out of date — please reload and try ' +
+                 'again. If it keeps happening, contact your instructor.';
+
+  if (!Array.isArray(teammates) || teammates.length === 0) {
+    return 'Submission rejected: no teammates to review.';
+  }
+
+  const me = String(submitterEmail || '').trim().toLowerCase();
+  const view = resolveRosterView_(roster, me, isAdmin);
+  if (view.mode === 'denied' || view.mode === 'noTeam') return REJECT;
+
+  const allowed = {};
+  view.rosterData.forEach(function (p) {
+    const e = String(p.email || '').trim().toLowerCase();
+    if (e && e !== me) allowed[e] = true;
+  });
+
+  const seen = {};
+  for (let i = 0; i < teammates.length; i++) {
+    const t = teammates[i] || {};
+    const e = String(t.email == null ? '' : t.email).trim().toLowerCase();
+    if (!e || !allowed[e] || seen[e]) return REJECT;
+    seen[e] = true;
+  }
+  return null;
+}
+
 /** Hover notes for Config keys, applied to the key cell (column A).
  *  Instructors read the Config tab without the README in front of them. */
 const CONFIG_NOTES = {
@@ -1541,9 +1606,11 @@ if (typeof module !== 'undefined' && module.exports) {
     folderIdFromConfig_: folderIdFromConfig_,
     hasTeam_: hasTeam_,
     resolveRosterView_: resolveRosterView_,
+    validateRecipients_: validateRecipients_,
     gradebookRoster_: gradebookRoster_,
     configLinkFormula_: configLinkFormula_,
     CONFIG_LINKS: CONFIG_LINKS,
+    decorateConfigSheet_: decorateConfigSheet_,
     CONFIG_NOTES: CONFIG_NOTES
   };
 }

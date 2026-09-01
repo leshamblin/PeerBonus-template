@@ -104,12 +104,21 @@ to reconcile with the template (diffs exceed the file sizes).
   Logic lives in `resolveRosterView_` and is unit-tested in `test/noTeam.test.js`.
 - **The Gradebook skips whitelisted admins who have no team.** Registrar
   exports routinely include the instructor; without this she appears as a
-  student on team "Unknown" with a grade of 0 (equalShare is 0 for a team of
-  one, so the bonus-ratio formula yields 0). An admin WITH a team is kept —
-  a whitelisted TA on a project team is a real participant, and dropping her
-  would silently lose a graded person. `gradebookRoster_`, tested in
-  `test/gradebookRoster.test.js`. This means an instructor no longer has to
-  remember to delete herself from the Roster after each re-paste.
+  student on team "Unknown" with `Reviews Received = 0` and a grade of 0. An
+  admin WITH a team is kept — a whitelisted TA on a project team is a real
+  participant, and dropping her would silently lose a graded person.
+  `gradebookRoster_`, tested in `test/gradebookRoster.test.js`.
+  **Scope: the Gradebook only.** `generateSummaryDocs` and
+  `generateTeamReflectionDocs` still seed from the unfiltered `getRoster()`, so
+  a blank-team instructor left on the Roster is still a summary-doc recipient.
+  Extend those call sites if that matters to an instructor.
+- **Recipients are validated server-side** (`validateRecipients_`, tested in
+  `test/recipients.test.js`). `submitPeerEval` writes `t.email` from the client
+  straight into Responses, so without this a stale tab — or a crafted request —
+  can record dollars for people who are not on the submitter's team, or for the
+  submitter themselves. The allowed set comes from `resolveRosterView_`, the
+  same rule `doGet` used to build the form, so the two cannot drift apart.
+  Rejects off-team and off-roster recipients, self-allocation, and duplicates.
 - Admin view: whitelisted admins who are NOT on the roster see only the
   **Testdata** team (demo mode), not the full class — carried over from the
   Summer I version (Code.js, `isTestTeam_` filter in `doGet`). Change the

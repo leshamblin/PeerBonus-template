@@ -48,13 +48,26 @@ assert.deepStrictEqual(gradebookRoster_(messyRoster, ['  Prof@NCSU.edu  ']), [],
 // ── Degenerate inputs ───────────────────────────────────────────────────
 assert.strictEqual(gradebookRoster_(roster, []).length, 5,
   'empty whitelist removes nobody');
-assert.strictEqual(gradebookRoster_(roster, ['']).length, 5,
-  'a blank whitelist entry must not match blank-ish emails');
 assert.deepStrictEqual(gradebookRoster_([], admins), [], 'empty roster stays empty');
 
-// ── Purity: the caller's array is not mutated ───────────────────────────
-const before = roster.length;
-gradebookRoster_(roster, admins);
-assert.strictEqual(roster.length, before, 'input roster is not mutated');
+// A blank whitelist entry must not match a roster row with a blank email.
+// Both sides normalise to '', so a careless `indexOf('') >= 0` would drop the
+// student. The whitelist here is deliberately non-empty, otherwise the
+// admins.length === 0 early return short-circuits before the matching logic
+// and the assertion proves nothing.
+assert.strictEqual(
+  gradebookRoster_([{ firstName: 'No', lastName: 'Email', email: '', section: '' }],
+                   ['', 'prof@ncsu.edu']).length,
+  1,
+  'a blank whitelist entry does not match a blank-email roster row');
+
+// ── Purity: a new array, and the caller's rows are untouched ────────────
+// Asserting on roster.length alone proves nothing — Array.prototype.filter
+// cannot change the input's length, so it passes for any correct-shaped
+// implementation.
+const snapshot = JSON.parse(JSON.stringify(roster));
+const result = gradebookRoster_(roster, admins);
+assert.notStrictEqual(result, roster, 'a new array is returned, not the input');
+assert.deepStrictEqual(roster, snapshot, 'no roster row was mutated or removed');
 
 console.log('gradebook roster filter: all assertions passed');
