@@ -153,7 +153,7 @@ function getConfig(ss) {
       present[key] = true;
     }
   });
-  decorateConfigSheet_(sheet, data.length, present, config);
+  decorateConfigSheet_(sheet, present, config);
 
   cache.put('config', JSON.stringify(config), 300);
   return config;
@@ -163,21 +163,25 @@ function getConfig(ss) {
  *  hover notes. Both are presence-checked so a cache miss (every 5 min) does
  *  not turn into a write. Never throws — a cosmetic touch must not take the
  *  app down. */
-function decorateConfigSheet_(sheet, rowCount, present, config) {
+function decorateConfigSheet_(sheet, present, config) {
   try {
     // ── "go to web form" link ──────────────────────────────────────────
+    // Row positions come from getLastRow(), never from the caller's earlier
+    // read: getConfig appends missing default keys before calling us, so a
+    // count taken before that would point setFormula at the wrong cell.
     if (!present['web_form']) {
       const formula = webFormFormula_((COURSE.urls && COURSE.urls.form) || '');
       if (formula) {
         sheet.appendRow(['web_form', '']);
-        sheet.getRange(rowCount + 1, 2).setFormula(formula);
+        sheet.getRange(sheet.getLastRow(), 2).setFormula(formula);
         config['web_form'] = 'go to web form';
-        rowCount++;
       }
     }
 
     // ── Hover notes on the key cells ───────────────────────────────────
-    const keys = sheet.getRange(1, 1, rowCount, 1).getValues();
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return;
+    const keys = sheet.getRange(1, 1, lastRow, 1).getValues();
     for (let i = 1; i < keys.length; i++) {
       const key = String(keys[i][0] || '').trim();
       const want = CONFIG_NOTES[key];
