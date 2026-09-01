@@ -5,6 +5,41 @@ function gradebookUrl_(ss) {
   return baseUrl.replace(/#.*$/, '') + '#gid=' + gb.getSheetId();
 }
 
+/**
+ * Decide which slice of the roster a viewer is allowed to see.
+ * Returns { mode, rosterData } where mode is one of:
+ *   'team'   — their own team
+ *   'demo'   — the Testdata team, for admins previewing the student experience
+ *   'noTeam' — on the roster but with no team assignment
+ *   'denied' — not on the roster at all
+ */
+function resolveRosterView_(fullRoster, userEmail, isAdmin) {
+  const email = String(userEmail || '').trim().toLowerCase();
+  const currentUser = fullRoster.find(
+    p => String(p.email || '').trim().toLowerCase() === email);
+
+  if (currentUser && hasTeam_(currentUser.section)) {
+    return {
+      mode: 'team',
+      rosterData: fullRoster.filter(p => p.section === currentUser.section)
+    };
+  }
+  if (isAdmin) {
+    // Admins off the roster — and admins ON it with no team, since registrar
+    // rosters routinely list the instructor — are scoped to the Testdata team
+    // so they preview the student experience instead of landing in a phantom
+    // team built from everyone whose team cell happens to be blank.
+    return {
+      mode: 'demo',
+      rosterData: fullRoster.filter(p => isTestTeam_(p.section))
+    };
+  }
+  if (currentUser) {
+    return { mode: 'noTeam', rosterData: [] };
+  }
+  return { mode: 'denied', rosterData: [] };
+}
+
 function doGet() {
   const template = HtmlService.createTemplateFromFile('Index');
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -17,24 +52,10 @@ function doGet() {
   const isAdmin = admins.includes(userEmail.trim().toLowerCase());
 
   const fullRoster = getRoster(ss);
-  const currentUser = fullRoster.find(p => p.email.toLowerCase() === userEmail.trim().toLowerCase());
-
-  let rosterData = [];
-  let userFound = false;
-
-  if (isAdmin && currentUser) {
-    userFound = true;
-    rosterData = fullRoster.filter(p => p.section === currentUser.section);
-  } else if (isAdmin) {
-    userFound = true;
-    // Admins aren't on the class roster, so scope their view to the Testdata
-    // team (for demoing/previewing the student experience) rather than showing
-    // the entire class lumped into one team.
-    rosterData = fullRoster.filter(p => isTestTeam_(p.section));
-  } else if (currentUser) {
-    userFound = true;
-    rosterData = fullRoster.filter(p => p.section === currentUser.section);
-  }
+  const view = resolveRosterView_(fullRoster, userEmail, isAdmin);
+  const rosterData = view.rosterData;
+  const userFound = view.mode !== 'denied';
+  const noTeam = view.mode === 'noTeam';
 
   // Check if already submitted
   let hasSubmitted = false;
@@ -48,13 +69,14 @@ function doGet() {
   template.userEmail = userEmail.trim();
   template.isAdmin = isAdmin;
   template.userFound = userFound;
+  template.noTeam = noTeam;
   template.hasSubmitted = hasSubmitted;
   template.spreadsheetUrl = spreadsheetUrl;
   template.rosterData = JSON.stringify(rosterData).replace(/</g, '\\u003c');
   template.execUrl = ScriptApp.getService().getUrl();
 
-  // Access-Denied diagnostic data — only consulted when userFound is false.
-  if (!userFound) {
+  // Diagnostic data — consulted by the Access Denied and No Team screens.
+  if (!userFound || noTeam) {
     const requesterEmail = userEmail.trim().toLowerCase();
     const rosterEmails = fullRoster.map(p => p.email.toLowerCase()).filter(e => e);
     // Suggest the closest roster match by simple prefix/substring scoring.
@@ -175,6 +197,13 @@ function submitPeerEval(data) {
 
     if (!isInRoster && !isAdmin) {
       return { success: false, error: 'Submission rejected: you are not listed in the course roster.' };
+    }
+
+    // A rostered non-admin with no team has no legitimate teammates to review.
+    // Catches a tab left open from before the instructor fixed their team.
+    const submitterRow = roster.find(p => p.email.toLowerCase() === submitterEmail);
+    if (submitterRow && !isAdmin && !hasTeam_(submitterRow.section)) {
+      return { success: false, error: 'Submission rejected: you do not have a team assignment yet. Please contact your instructor.' };
     }
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -833,6 +862,13 @@ function isTestTeam_(label) {
   return TEST_TEAM_LABELS.indexOf(String(label || '').trim().toLowerCase()) >= 0;
 }
 
+/** A blank, whitespace-only or missing team cell means "not assigned yet" —
+ *  never a team. Grouping blanks together would make unassigned students look
+ *  like a real team to each other. */
+function hasTeam_(label) {
+  return String(label == null ? '' : label).trim() !== '';
+}
+
 /**
  * Wipe and recreate test data. Idempotent — re-running it produces the same
  * end state. Three sample members live in the Roster under team "Testdata"
@@ -1395,5 +1431,10 @@ function generateTeamReflectionDocs() {
 
 // Node-only: expose pure helpers for local unit tests. Harmless under GAS.
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { buildFlagOnlyRows_: buildFlagOnlyRows_, folderIdFromConfig_: folderIdFromConfig_ };
+  module.exports = {
+    buildFlagOnlyRows_: buildFlagOnlyRows_,
+    folderIdFromConfig_: folderIdFromConfig_,
+    hasTeam_: hasTeam_,
+    resolveRosterView_: resolveRosterView_
+  };
 }

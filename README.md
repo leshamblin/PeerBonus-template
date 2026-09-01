@@ -94,6 +94,14 @@ to reconcile with the template (diffs exceed the file sizes).
   worth absorbing into the template for everyone.
 
 ## Behavior notes
+- **Blank team cells are "no team", never a team.** A student on the roster
+  whose Team cell is empty gets a "No Team Assignment — contact your
+  instructor" screen, and `submitPeerEval` rejects their submission. Before
+  this, `p.section === currentUser.section` matched blank to blank, so every
+  unassigned student silently formed a phantom team, evaluated each other, and
+  wrote real bonus dollars into Responses. An admin with a blank team gets the
+  Testdata demo instead (registrar rosters routinely list the instructor).
+  Logic lives in `resolveRosterView_` and is unit-tested in `test/noTeam.test.js`.
 - Admin view: whitelisted admins who are NOT on the roster see only the
   **Testdata** team (demo mode), not the full class — carried over from the
   Summer I version (Code.js, `isTestTeam_` filter in `doGet`). Change the

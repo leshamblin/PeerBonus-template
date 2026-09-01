@@ -326,6 +326,27 @@
       </div>
     </details>
   </div>
+  <? } else if (typeof noTeam !== 'undefined' && noTeam) { ?>
+  <div class="container" style="text-align:center;padding:3rem;">
+    <div style="font-size:4rem;color:var(--error);margin-bottom:1rem;">👥</div>
+    <h1>No Team Assignment</h1>
+    <p>You are on the course roster, but you have not been assigned to a team yet.
+       Please contact your instructor.</p>
+    <p style="color:var(--text-secondary);">Once your team is set, reload this page to complete your evaluation.</p>
+    <p style="margin-top:1rem;color:var(--text-secondary);font-size:0.9rem;">Logged in as: <strong><?= userEmail ?></strong></p>
+
+    <details style="margin:1.75rem auto 0;max-width:520px;text-align:left;background:#fafafa;border:1px solid #e2e2e2;border-radius:8px;padding:0.75rem 1rem;font-size:0.85rem;color:#444;">
+      <summary style="cursor:pointer;font-weight:600;color:#555;">🔍 Show diagnostic (for your instructor)</summary>
+      <div style="margin-top:0.75rem;line-height:1.6;">
+        <div><strong>Your Google identity:</strong> <code><?= diagEmail ?></code></div>
+        <div style="margin-top:0.5rem;"><strong>Roster size:</strong> <?= diagRosterCount ?> people</div>
+        <div style="margin-top:0.5rem;color:#a33;">This account was found on the Roster, but its <strong>Team</strong> cell is empty.</div>
+        <div style="margin-top:0.75rem;color:#666;font-style:italic;">
+          Instructor: fill in the Team column for this student on the Roster tab, then run <strong>Peer Eval Admin → 🗂️ Clear App Cache</strong>. The roster is cached for 5 minutes, so the change may not appear immediately otherwise.
+        </div>
+      </div>
+    </details>
+  </div>
   <? } else if (hasSubmitted) { ?>
   <div class="container" id="already-submitted">
     <div class="success-icon">✓</div>
