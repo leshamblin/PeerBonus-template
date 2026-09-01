@@ -165,18 +165,18 @@ function getConfig(ss) {
  *  app down. */
 function decorateConfigSheet_(sheet, present, config) {
   try {
-    // ── "go to web form" link ──────────────────────────────────────────
+    // ── Link rows ──────────────────────────────────────────────────────
     // Row positions come from getLastRow(), never from the caller's earlier
     // read: getConfig appends missing default keys before calling us, so a
     // count taken before that would point setFormula at the wrong cell.
-    if (!present['web_form']) {
-      const formula = webFormFormula_((COURSE.urls && COURSE.urls.form) || '');
-      if (formula) {
-        sheet.appendRow(['web_form', '']);
-        sheet.getRange(sheet.getLastRow(), 2).setFormula(formula);
-        config['web_form'] = 'go to web form';
-      }
-    }
+    CONFIG_LINKS.forEach(function (link) {
+      if (present[link.key]) return;
+      const formula = configLinkFormula_(link.url(), link.text);
+      if (!formula) return;   // URL not filled in yet — try again next time
+      sheet.appendRow([link.key, '']);
+      sheet.getRange(sheet.getLastRow(), 2).setFormula(formula);
+      config[link.key] = link.text;
+    });
 
     // ── Hover notes on the key cells ───────────────────────────────────
     const lastRow = sheet.getLastRow();
@@ -913,16 +913,42 @@ const CONFIG_NOTES = {
     'Ignored in "bonus_ratio" mode.'
 };
 
-/** Build the Config sheet's "go to web form" link from COURSE.urls.form.
- *  Returns null when that URL is still the config.js placeholder or is
- *  otherwise not a real https link — a link that looks clickable and goes
- *  nowhere is worse than no link, and the row appears on its own once the
- *  real exec URL is filled in. */
-function webFormFormula_(url) {
+/** Read one COURSE.urls entry defensively. Apps Script shares a global scope
+ *  across files so COURSE is always there at runtime, but a course copy with a
+ *  malformed config.js — or a Node test requiring Code.js on its own — must
+ *  degrade to "no link" rather than throw inside getConfig. */
+function courseUrl_(name) {
+  try {
+    if (typeof COURSE === 'undefined' || !COURSE || !COURSE.urls) return '';
+    return COURSE.urls[name] || '';
+  } catch (err) {
+    return '';
+  }
+}
+
+/** Clickable rows the Config sheet grows once the matching URL exists in
+ *  config.js. The URL is read through a function so COURSE.urls is consulted
+ *  when the row is written, not when this file loaded. Add a row here to add
+ *  a link. */
+const CONFIG_LINKS = [
+  { key: 'web_form',
+    url:  function () { return courseUrl_('form'); },
+    text: 'go to web form' },
+  { key: 'instructor_guide',
+    url:  function () { return courseUrl_('mainGuide'); },
+    text: 'go to instructor guide' }
+];
+
+/** Build a Config sheet HYPERLINK. Returns null when the URL is still a
+ *  config.js placeholder or is otherwise not a real https link — a link that
+ *  looks clickable and goes nowhere is worse than no link, so the row simply
+ *  appears on its own once the real URL is filled in and pushed. */
+function configLinkFormula_(url, text) {
   const u = String(url == null ? '' : url).trim();
   if (u.indexOf('https://') !== 0) return null;
   // A literal " inside a Sheets formula string is escaped by doubling it.
-  return '=HYPERLINK("' + u.replace(/"/g, '""') + '","go to web form")';
+  const esc = function (v) { return String(v).replace(/"/g, '""'); };
+  return '=HYPERLINK("' + esc(u) + '","' + esc(text) + '")';
 }
 
 /** A blank, whitespace-only or missing team cell means "not assigned yet" —
@@ -1516,7 +1542,8 @@ if (typeof module !== 'undefined' && module.exports) {
     hasTeam_: hasTeam_,
     resolveRosterView_: resolveRosterView_,
     gradebookRoster_: gradebookRoster_,
-    webFormFormula_: webFormFormula_,
+    configLinkFormula_: configLinkFormula_,
+    CONFIG_LINKS: CONFIG_LINKS,
     CONFIG_NOTES: CONFIG_NOTES
   };
 }

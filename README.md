@@ -121,13 +121,17 @@ to reconcile with the template (diffs exceed the file sizes).
   `app_subtitle`), which is why config.js must be filled in BEFORE the sheet's
   Config tab is first created.
 - **Config sheet decoration** (`decorateConfigSheet_`, called from `getConfig`):
-  a `web_form` row whose value is a `=HYPERLINK(...)` reading "go to web form",
-  and a hover note on the `flag_threshold` key cell explaining what the number
-  does. Both are presence-checked, so a cache miss (every 5 min) is a read, not
+  link rows driven by the `CONFIG_LINKS` table — `web_form` ("go to web form",
+  from `COURSE.urls.form`) and `instructor_guide` ("go to instructor guide",
+  from `COURSE.urls.mainGuide`) — plus a hover note on the `flag_threshold` key
+  cell explaining what the number does. Both are presence-checked, so a cache miss (every 5 min) is a read, not
   a write. The link row is skipped while `COURSE.urls.form` is still the
   placeholder — it appears by itself once step 9 fills the real exec URL in.
   Delivered through `getConfig` rather than `setupSheet` because the menu hides
   "Set Up Sheet" once the three tabs exist, so existing courses would never run
-  it. New notes go in the `CONFIG_NOTES` map.
+  it. Add a link by adding a row to `CONFIG_LINKS`; add a hover note via the
+  `CONFIG_NOTES` map. Because each row is skipped until its URL is real, you
+  can wire a link up long before the thing it points at exists — the row
+  materializes on the next `getConfig` after the URL is filled in and pushed.
 - Denominations are US bills `[10, 20, 50, 100]`, $1,000 budget (dollar
   version — the euro/Spain variant is a legacy fork).
