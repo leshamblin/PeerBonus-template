@@ -102,6 +102,14 @@ to reconcile with the template (diffs exceed the file sizes).
   wrote real bonus dollars into Responses. An admin with a blank team gets the
   Testdata demo instead (registrar rosters routinely list the instructor).
   Logic lives in `resolveRosterView_` and is unit-tested in `test/noTeam.test.js`.
+- **The Gradebook skips whitelisted admins who have no team.** Registrar
+  exports routinely include the instructor; without this she appears as a
+  student on team "Unknown" with a grade of 0 (equalShare is 0 for a team of
+  one, so the bonus-ratio formula yields 0). An admin WITH a team is kept —
+  a whitelisted TA on a project team is a real participant, and dropping her
+  would silently lose a graded person. `gradebookRoster_`, tested in
+  `test/gradebookRoster.test.js`. This means an instructor no longer has to
+  remember to delete herself from the Roster after each re-paste.
 - Admin view: whitelisted admins who are NOT on the roster see only the
   **Testdata** team (demo mode), not the full class — carried over from the
   Summer I version (Code.js, `isTestTeam_` filter in `doGet`). Change the

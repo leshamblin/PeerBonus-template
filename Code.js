@@ -513,7 +513,10 @@ function generateGradebook(silent) {
   let ui = null;
   try { ui = SpreadsheetApp.getUi(); } catch (_) { /* no UI in web app context */ }
   const ss     = SpreadsheetApp.getActiveSpreadsheet();
-  const roster = getRoster();
+  const config = getConfig(ss);
+  const roster = gradebookRoster_(
+    getRoster(),
+    (config.admin_whitelist || '').split(','));
 
   if (roster.length === 0) {
     if (ui && !silent) ui.alert('No roster data found. Please populate the Roster sheet first.');
@@ -559,7 +562,6 @@ function generateGradebook(silent) {
   });
 
   // ── Dispatch on grading mode ──────────────────────────────────────────────
-  const config = getConfig(ss);
   const mode = (config.grading_mode || 'bonus_ratio').toString().trim();
   const flagThreshold = Number(config.flag_threshold) || 0.75;
 
@@ -867,6 +869,22 @@ function isTestTeam_(label) {
  *  like a real team to each other. */
 function hasTeam_(label) {
   return String(label == null ? '' : label).trim() !== '';
+}
+
+/** Roster rows that belong in the Gradebook.
+ *  Drops whitelisted admins who have no team — course staff swept in by a
+ *  registrar export, who would otherwise appear as zero-scored students.
+ *  An admin WITH a team (e.g. a TA on a project team) is a real participant
+ *  and is kept; silently dropping them would lose a graded person. */
+function gradebookRoster_(roster, adminEmails) {
+  const admins = (adminEmails || [])
+    .map(e => String(e || '').trim().toLowerCase())
+    .filter(e => e);
+  if (admins.length === 0) return roster.slice();
+  return roster.filter(p => {
+    const email = String(p.email || '').trim().toLowerCase();
+    return !(admins.indexOf(email) >= 0 && !hasTeam_(p.section));
+  });
 }
 
 /**
@@ -1435,6 +1453,7 @@ if (typeof module !== 'undefined' && module.exports) {
     buildFlagOnlyRows_: buildFlagOnlyRows_,
     folderIdFromConfig_: folderIdFromConfig_,
     hasTeam_: hasTeam_,
-    resolveRosterView_: resolveRosterView_
+    resolveRosterView_: resolveRosterView_,
+    gradebookRoster_: gradebookRoster_
   };
 }
