@@ -1,0 +1,15 @@
+*.md
+*.pdf
+*.docx
+*.xlsx
+*.csv
+*.sh
+*.png
+*.wav
+*.mp3
+*.m4a
+.DS_Store
+backup/**
+euros/**
+euros-small/**
+test/**
