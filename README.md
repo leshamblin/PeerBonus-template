@@ -34,9 +34,13 @@ surviving in the copied Config tab).
    ```bash
    cp -R ~/Documents/Programming/PeerBonus-template ~/Documents/Programming/<Instructor>-Bonus-<Course>
    cd ~/Documents/Programming/<Instructor>-Bonus-<Course>
-   rm .clasp.json README.md sync.sh
+   rm -rf .clasp.json README.md sync.sh test
    clasp create --type sheets --title "<Course> Peer Evaluation"
    ```
+
+   `README.md`, `sync.sh` and `test/` are template-only. The tests especially:
+   they are not in `SHARED_FILES`, so a copy that keeps them carries a frozen
+   snapshot that silently drifts from the template as the code moves on.
 2. **Restore appsscript.json** — `clasp create` overwrites it with a bare
    default manifest, dropping the `webapp` block (`executeAs: USER_DEPLOYING`,
    `access: DOMAIN`) and oauthScopes. Re-copy it from this template folder.
