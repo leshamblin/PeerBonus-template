@@ -142,11 +142,14 @@ to reconcile with the template (diffs exceed the file sizes).
   `CONFIG_NOTES` map. Because each row is skipped until its URL is real, you
   can wire a link up long before the thing it points at exists — the row
   materializes on the next `getConfig` after the URL is filled in and pushed.
-- Denominations are US bills `[10, 20, 50, 100]`, $1,000 budget (dollar
+- Denominations are US bills `[1, 10, 20, 50, 100]`, $1,000 budget (dollar
   version — the euro/Spain variant is a legacy fork).
 - **An even split gives every teammate the identical share; the unsplittable
-  remainder is donated.** The smallest bill is $10, so on 3, 6 or 7 teammates
-  $1,000 will not divide: 3 teammates get $330 each and $10 goes to charity.
+  remainder is donated.** $1,000 does not divide by 3 at any precision — not
+  in $10 bills, not in $1 bills, not even to the cent (333.33 × 3 = 999.99) —
+  so on 3, 6 or 7 teammates a remainder is unavoidable: 3 teammates get $333
+  each and $1 goes to charity. Singles exist so that remainder is $1, not $10.
+  `SMALLEST_BILL` must equal `min(DENOMS)`; the test pins it.
   The old code spread the leftover across the first few teammates instead
   (`340/330/330`), which was not cosmetic — `equalShare` was `$1,000 ÷
   (teamSize − 1)` = `$333.33`, so the first-listed teammate scored a bonus

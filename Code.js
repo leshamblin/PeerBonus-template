@@ -1,24 +1,30 @@
 // ── Allocation rules ───────────────────────────────────────────────────────
 // Mirrored in Index.html (computeEvenSplit / updateFooter). Change both.
 //
-// A reviewer distributes BONUS_BUDGET among their teammates using bills of
-// $10 and up, so every share is a multiple of $10. When the budget will not
-// divide n ways on that grid — 3, 6 or 7 teammates out of $1,000 — the
-// leftover cannot be handed out evenly, and it is donated to charity rather
-// than dumped on one teammate. That last part was a real bug: the odd $10
-// used to go to whoever sorted first, which put their bonus ratio at 1.02 and
-// everyone else's at 0.99, so surname order moved final grades by a point.
+// A reviewer distributes BONUS_BUDGET among their teammates in bills, so
+// every share is a multiple of SMALLEST_BILL. $1,000 does not divide by 3 at
+// any precision — not in $10 bills, not in $1 bills, not even to the cent
+// (333.33 × 3 = 999.99) — so on 3, 6 or 7 teammates a remainder is
+// unavoidable. It is donated to charity rather than dumped on one teammate.
+// That last part was a real bug: the odd $10 used to go to whoever sorted
+// first, which put their bonus ratio at 1.02 and everyone else's at 0.99, so
+// surname order moved final grades by a point. Singles were added so the
+// remainder is $1 rather than $10 and nobody needs to think about it.
 const BONUS_BUDGET   = 1000;
 const MAX_PER_PERSON = 1000;
+
+// Must equal min(DENOMS) in Index.html. Pinned by test/evenSplit.test.js so
+// the two cannot drift; adding or removing a denomination means changing both.
+const SMALLEST_BILL  = 1;
 
 // The identical share each of n teammates receives from an even split.
 function evenShare_(budget, n) {
   if (!(n > 0)) return 0;
-  return Math.floor(Math.floor(budget / 10) / n) * 10;
+  return Math.floor(Math.floor(budget / SMALLEST_BILL) / n) * SMALLEST_BILL;
 }
 
-// What an even split cannot place, and therefore goes to charity. Always
-// less than n × $10 — a whole bill per teammate would have been distributable.
+// What an even split cannot place, and therefore goes to charity. Always less
+// than n × SMALLEST_BILL — one more bill each would have been distributable.
 function charityRemainder_(budget, n) {
   if (!(n > 0)) return 0;
   return budget - evenShare_(budget, n) * n;
@@ -739,9 +745,9 @@ function buildGradebook_bonusRatio_(gb, sorted, sectionSize, scoresReceived, sub
   //   where BonusRatio = avgBonusReceived / equalShare
   //         equalShare = the share Split Evenly hands one teammate — see
   //                      evenShare_. NOT $1,000 ÷ (teamSize − 1): on a team of
-  //                      four that is $333.33, which no distribution of $10
-  //                      bills can hit, so an even split would score 99 and
-  //                      100 would be unreachable.
+  //                      four that is $333.33, which no whole number of bills
+  //                      can hit, so an even split would score 99.99 and a
+  //                      clean 100 would be unreachable.
   //         avgBonusReceived = mean of dollars received from teammates who reviewed
   // Non-submitters get grade 0. Non-submitting teammates simply don't show up in
   // the avg — no imputation needed.
@@ -1646,6 +1652,7 @@ function generateTeamReflectionDocs() {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     BONUS_BUDGET: BONUS_BUDGET,
+    SMALLEST_BILL: SMALLEST_BILL,
     evenShare_: evenShare_,
     charityRemainder_: charityRemainder_,
     validateAllocationTotal_: validateAllocationTotal_,

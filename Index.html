@@ -27,6 +27,7 @@
       /* Bill tokens */
       /* Pile-dot accent colors per denomination (small markers on teammate cards
          when bills are stacked). Distinct accent hue per denomination. */
+      --p1:   #7f8f77;  /* $1   — sage; flat chip, no bill photo */
       --p10:  #d24b5b;  /* $10  — red */
       --p20:  #4a83b8;  /* $20  — blue */
       --p50:  #e08e3b;  /* $50  — orange */
@@ -129,6 +130,10 @@
     }
     /* US bill sizes get slightly larger as the denomination climbs —
        mimics the real-world bills, gives a visual cue for value. */
+    /* $1 has no bill photo — a flat labelled chip instead. Overrides the
+       font-size:0 that hides stray text on the photographic bills. */
+    .bill-1   { width:52px;  height:26px; background:var(--p1); color:#fff;
+                font-size:0.68rem; letter-spacing:0.02em; }
     .bill-10  { width:80px;  height:34px; }
     .bill-20  { width:84px;  height:36px; }
     .bill-50  { width:88px;  height:37px; }
@@ -483,32 +488,38 @@
     const BUDGET = 1000;
     /* Allocation rules — mirrored in Code.js (evenShare_ / charityRemainder_ /
        validateAllocationTotal_). Change both.
-       • Bills are drawn from a fixed set of denominations (DENOMS below), the
-         smallest being $10, so every share is a multiple of $10.
+       • Bills are drawn from a fixed set of denominations (DENOMS below), so
+         every share is a multiple of SMALLEST_BILL.
        • An even split gives all n teammates the identical share evenShare().
-         When the budget won't divide n ways on the $10 grid — 3, 6 or 7
-         teammates out of $1,000 — the leftover is donated rather than handed
-         to one teammate, which is what used to happen: the odd $10 went to
-         whoever sorted first, putting their bonus ratio at 1.02 and everyone
-         else's at 0.99, so surname order moved final grades.
+         $1,000 does not divide by 3 at any precision — not in $10 bills, not
+         in $1 bills, not even to the cent — so on 3, 6 or 7 teammates a
+         remainder is unavoidable and is donated rather than handed to one
+         teammate. That is what used to happen: the odd $10 went to whoever
+         sorted first, putting their bonus ratio at 1.02 and everyone else's
+         at 0.99, so surname order moved final grades. Singles were added so
+         the remainder is $1 rather than $10.
        • A reviewer must distribute at least DISTRIBUTABLE_AMOUNT; only the
          unsplittable CHARITY remainder may be left behind.
        • No single teammate may receive more than MAX_PER_PERSON. */
     const MAX_PER_PERSON = 1000;
 
+    /* Must equal min(DENOMS) below, and SMALLEST_BILL in Code.js. */
+    const SMALLEST_BILL = 1;
+
     /* The identical share each of n teammates receives from an even split. */
     function evenShare(budget, n) {
       if (!(n > 0)) return 0;
-      return Math.floor(Math.floor(budget / 10) / n) * 10;
+      return Math.floor(Math.floor(budget / SMALLEST_BILL) / n) * SMALLEST_BILL;
     }
 
     const TOKENS = {
+      1:   { cls:'bill bill-1',   label:'$1',                     pile:{ w:11, h:6,  bg:'var(--p1)',   r:'2px' } },
       10:  { cls:'bill bill-10',  label:'$10',  img: USD_10_IMG,  pile:{ w:14, h:7,  bg:'var(--p10)',  r:'2px' } },
       20:  { cls:'bill bill-20',  label:'$20',  img: USD_20_IMG,  pile:{ w:15, h:8,  bg:'var(--p20)',  r:'2px' } },
       50:  { cls:'bill bill-50',  label:'$50',  img: USD_50_IMG,  pile:{ w:17, h:9,  bg:'var(--p50)',  r:'2px' } },
       100: { cls:'bill bill-100', label:'$100', img: USD_100_IMG, pile:{ w:19, h:10, bg:'var(--p100)', r:'2px' } },
     };
-    const DENOMS = [10, 20, 50, 100];
+    const DENOMS = [1, 10, 20, 50, 100];
 
     let roster = [];
     try {
@@ -541,6 +552,7 @@
         const el = document.createElement('div');
         el.className = 'token ' + t.cls;
         if (t.img) el.style.backgroundImage = 'url(' + t.img + ')';
+        else el.textContent = t.label;   // flat chip needs its own label
         el.title = t.label;
         el.setAttribute('aria-label', t.label);
         el.draggable = true;
@@ -828,7 +840,7 @@
         document.getElementById('remaining-text').style.color = 'var(--error)';
         err.textContent = CHARITY > 0
           ? `You still have $${shortfall.toLocaleString()} to allocate. Only the last $${CHARITY.toLocaleString()} — which cannot be split evenly ${teammates.length} ways — goes to charity.`
-          : `You still have $${shortfall.toLocaleString()} to allocate. Amounts of $10 or more must be assigned to a teammate.`;
+          : `You still have $${shortfall.toLocaleString()} to allocate. Every dollar divides evenly ${teammates.length} ways, so nothing should be left over.`;
         err.style.color = 'var(--error)';
       }
       bar.style.width = pct + '%';
@@ -880,7 +892,7 @@
         const shortfall = DISTRIBUTABLE_AMOUNT - total;
         showErr(CHARITY > 0
           ? `You still have $${shortfall.toLocaleString()} to allocate before submitting. Only the last $${CHARITY.toLocaleString()} — which cannot be split evenly ${teammates.length} ways — is donated to charity.`
-          : `You still have $${shortfall.toLocaleString()} unallocated. Amounts of $10 or more must be assigned to a teammate before submitting.`);
+          : `You still have $${shortfall.toLocaleString()} unallocated. Every dollar divides evenly ${teammates.length} ways, so nothing should be left over.`);
         return;
       }
       // Enforce per-person cap as a final guard (the drag handler also blocks).
