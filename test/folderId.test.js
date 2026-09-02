@@ -1,6 +1,6 @@
 'use strict';
 const assert = require('assert');
-const { folderIdFromConfig_ } = require('../Code.js');
+const { folderIdFromConfig_, configLinkUrl_ } = require('../Code.js');
 
 const ID = '1u2Awm2vtcfTwU6caQdXq2j_Ju5ohL1du';
 
@@ -20,5 +20,13 @@ assert.strictEqual(folderIdFromConfig_('  ' + ID + '  '), ID, 'trims whitespace'
 assert.strictEqual(folderIdFromConfig_(''), '', 'empty string');
 assert.strictEqual(folderIdFromConfig_(undefined), '', 'undefined');
 assert.strictEqual(folderIdFromConfig_(null), '', 'null');
+
+// The Config cell now holds a =HYPERLINK formula rather than a bare URL, so
+// the real path is configLinkUrl_ -> folderIdFromConfig_. Pinned together here
+// because a break anywhere along it sends the reflection docs nowhere.
+assert.strictEqual(
+  folderIdFromConfig_(configLinkUrl_(
+    '=HYPERLINK("https://drive.google.com/drive/folders/' + ID + '","Go to Reflections Folder")')),
+  ID, 'a linkified Config cell still yields the folder ID');
 
 console.log('folderIdFromConfig_: all assertions passed');

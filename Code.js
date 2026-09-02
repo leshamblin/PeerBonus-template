@@ -169,7 +169,6 @@ function getConfig(ss) {
     ['app_subtitle',           COURSE.subtitle],
     ['intro_text',             'Please complete both parts of this evaluation before the deadline.'],
     ['admin_whitelist',        ''],
-    ['reflection_folder_id',   ''],
     ['grading_mode',           COURSE.gradingMode || 'bonus_ratio'],
     ['flag_threshold',         (COURSE.flagThreshold != null ? COURSE.flagThreshold : 0.75)]
   ];
@@ -180,7 +179,14 @@ function getConfig(ss) {
     defaults.forEach(row => sheet.appendRow(row));
   }
 
-  const data = sheet.getDataRange().getValues();
+  const range = sheet.getDataRange();
+  const data = range.getValues();
+  // A =HYPERLINK cell reads back through getValues() as its DISPLAY TEXT, so a
+  // link row's real URL has to come from the formula. This is not cosmetic:
+  // reflection_folder_id and summary_folder_id are links the app follows, and
+  // without this the reflection docs would go looking for a Drive folder named
+  // "Go to Reflections Folder".
+  const formulas = range.getFormulas();
   const config = {};
   const present = {};
   for (let i = 1; i < data.length; i++) {
@@ -188,15 +194,21 @@ function getConfig(ss) {
     const value = data[i][1];
     if (key) {
       const k = key.toString().trim();
-      config[k] = value;
+      const linked = configLinkUrl_(formulas[i] ? formulas[i][1] : '');
+      config[k] = linked || value;
       present[k] = true;
     }
   }
   // Append any genuinely-missing default keys, keyed on ROW PRESENCE, not on a
   // falsy value. Checking `!config[key]` treated an intentionally-blank value
-  // (admin_whitelist, reflection_folder_id) as missing and appended a fresh
-  // empty row on every cache miss; the trailing empty row then overrode the
-  // real value on the next read. Presence-check makes it idempotent.
+  // (admin_whitelist) as missing and appended a fresh empty row on every cache
+  // miss; the trailing empty row then overrode the real value on the next read.
+  // Presence-check makes it idempotent.
+  //
+  // The link keys are deliberately absent from `defaults`: decorateConfigSheet_
+  // appends them below, which is what keeps them together in one block at the
+  // bottom of the sheet. reflection_folder_id used to sit here and landed in
+  // the middle.
   defaults.forEach(([key, val]) => {
     if (!present[key]) {
       config[key] = val;
@@ -210,10 +222,13 @@ function getConfig(ss) {
   return config;
 }
 
-/** Idempotent Config-sheet decoration: the "go to web form" link row and the
- *  hover notes. Both are presence-checked so a cache miss (every 5 min) does
- *  not turn into a write. Never throws — a cosmetic touch must not take the
- *  app down. */
+/** Idempotent Config-sheet decoration: the CONFIG_LINKS block at the bottom of
+ *  the sheet and the hover notes. Both are checked against what the cell
+ *  already holds, so a cache miss (every 5 min) does not turn into a write.
+ *  Never throws — a cosmetic touch must not take the app down.
+ *
+ *  Not purely cosmetic in one respect: the two folder rows are links the app
+ *  follows, so the URL written here is also what getConfig caches. */
 function decorateConfigSheet_(sheet, config) {
   try {
     const lastRow = sheet.getLastRow();
@@ -224,6 +239,7 @@ function decorateConfigSheet_(sheet, config) {
     // getConfig appends any missing default keys before calling us, so a count
     // taken before that would point setFormula at the wrong cell.
     const keys = sheet.getRange(1, 1, lastRow, 1).getValues();
+    const formulas = sheet.getRange(1, 2, lastRow, 1).getFormulas();
     const rowOf = {};
     for (let i = 1; i < keys.length; i++) {
       const k = String(keys[i][0] || '').trim();
@@ -232,16 +248,23 @@ function decorateConfigSheet_(sheet, config) {
 
     // ── Link rows ──────────────────────────────────────────────────────
     CONFIG_LINKS.forEach(function (link) {
-      const formula = configLinkFormula_(link.url(), link.text);
+      const url = link.url(config);
+      const formula = configLinkFormula_(url, link.text);
       if (!formula) return;   // URL not filled in yet — try again next time
 
       const row = rowOf[link.key];
-      // Keyed on the VALUE, not just row presence: appendRow and setFormula
-      // are separate calls, so a failure between them (or an instructor
-      // clearing the cell by hand) leaves the key with a blank value. A
-      // presence-only check would skip that row forever and the link would
-      // never come back.
-      if (row && String(config[link.key] || '').trim() !== '') return;
+      // Keyed on the FORMULA already in the cell, not on row presence and not
+      // on the value. Presence alone would skip forever a row whose setFormula
+      // failed after appendRow (they are separate calls) or whose cell an
+      // instructor cleared by hand. Reading the formula also lets a row that
+      // predates a wording change — every live course sheet still says "go to
+      // web form" — be corrected in place. An up-to-date sheet still writes
+      // nothing.
+      const current = (row && formulas[row - 1]) ? String(formulas[row - 1][0] || '').trim() : '';
+      if (row && current === formula) {
+        config[link.key] = url;
+        return;
+      }
 
       if (row) {
         sheet.getRange(row, 2).setFormula(formula);
@@ -251,7 +274,9 @@ function decorateConfigSheet_(sheet, config) {
         sheet.getRange(added, 2).setFormula(formula);
         rowOf[link.key] = added;
       }
-      config[link.key] = link.text;
+      // The URL, not link.text — these keys are read by the app, and whatever
+      // lands here is what getConfig caches for the next five minutes.
+      config[link.key] = url;
     });
 
     // ── Hover notes on the key cells ───────────────────────────────────
@@ -428,7 +453,7 @@ function submitPeerEval(data) {
 
 function clearCache() {
   CacheService.getScriptCache().removeAll(['config', 'roster']);
-  SpreadsheetApp.getUi().alert('Cache cleared. The next page load will re-read config and roster from the sheet.');
+  notify_(uiOrNull_(), 'Cache cleared. The next page load will re-read config and roster from the sheet.');
 }
 
 function onOpen() {
@@ -473,9 +498,29 @@ function uiOrNull_() {
   try { return SpreadsheetApp.getUi(); } catch (_) { return null; }
 }
 
+// Report to whoever is watching: an alert when there's a UI, the execution log
+// when there isn't. `message` is optional — most menu handlers alert a single
+// string rather than a title/body pair.
 function notify_(ui, title, message) {
-  if (ui) ui.alert(title, message, ui.ButtonSet.OK);
-  else    Logger.log(title + '\n\n' + message);
+  if (ui) {
+    if (message == null) ui.alert(title);
+    else                 ui.alert(title, message, ui.ButtonSet.OK);
+  } else {
+    Logger.log(message == null ? title : title + '\n\n' + message);
+  }
+}
+
+// For actions that must not run unconfirmed. No UI means nobody to confirm
+// with, so the caller declines instead of proceeding — deleting data because
+// the confirmation dialog happened to be unavailable is the one outcome worse
+// than throwing.
+function requireUi_(actionName) {
+  const ui = uiOrNull_();
+  if (!ui) {
+    Logger.log(actionName + ' needs the sheet menu: it asks for confirmation ' +
+               'before deleting anything, and this context has no UI. Nothing was changed.');
+  }
+  return ui;
 }
 
 /**
@@ -542,6 +587,17 @@ function folderIdFromConfig_(value) {
   return v;                                          // already a bare ID
 }
 
+/** Put a folder URL in a Config value cell as a titled link when we can, as
+ *  the raw URL when we cannot. Set Up Output Folders runs long before config.js
+ *  has any URLs in it, so this is what makes the folder links show up without
+ *  waiting on a clasp push. The raw-URL fallback keeps the cell usable if the
+ *  link text ever goes missing — getConfig reads either shape. */
+function writeConfigLinkCell_(sheet, row, key, url) {
+  const formula = configLinkFormula_(url, configLinkText_(key));
+  if (formula) sheet.getRange(row, 2).setFormula(formula);
+  else sheet.getRange(row, 2).setValue(url);
+}
+
 // Also runnable from the editor — see uiOrNull_.
 function setupFolders() {
   const ui = uiOrNull_();
@@ -585,19 +641,22 @@ function setupFolders() {
     for (let i = 1; i < data.length; i++) {
       const key = (data[i][0] || '').toString().trim();
       if (toUpdate[key] !== undefined) {
-        configSheet.getRange(i + 1, 2).setValue(toUpdate[key]);
+        writeConfigLinkCell_(configSheet, i + 1, key, toUpdate[key]);
         found[key] = true;
       }
     }
     Object.entries(toUpdate).forEach(([key, val]) => {
-      if (!found[key]) configSheet.appendRow([key, val]);
+      if (!found[key]) {
+        configSheet.appendRow([key, '']);
+        writeConfigLinkCell_(configSheet, configSheet.getLastRow(), key, val);
+      }
     });
   }
 
   const lines = [
     (summaryCreated ? '✅ Created' : '• Already existed') + ': ' + summaryName,
     (reflectionsCreated ? '✅ Created' : '• Already existed') + ': ' + reflectionsName,
-    '\nConfig updated with Reflections folder ID.'
+    '\nConfig updated with links to both folders.'
   ];
   notify_(ui, '📁 Folders ready', lines.join('\n'));
 }
@@ -1065,11 +1124,43 @@ function courseUrl_(name) {
 const CONFIG_LINKS = [
   { key: 'web_form',
     url:  function () { return courseUrl_('form'); },
-    text: 'go to web form' },
-  { key: 'instructor_guide',
+    text: 'Go to Web Form' },
+  { key: 'documentation',
     url:  function () { return courseUrl_('mainGuide'); },
-    text: 'go to instructor guide' }
+    text: 'Go to Documentation' },
+  { key: 'reflection_folder_id',
+    url:  function (config) { return folderLinkUrl_(config, 'reflection_folder_id', 'reflections'); },
+    text: 'Go to Reflections Folder' },
+  { key: 'summary_folder_id',
+    url:  function (config) { return folderLinkUrl_(config, 'summary_folder_id', 'summary'); },
+    text: 'Go to Summary Folder' }
 ];
+
+/** Where a folder link should point. The Config sheet wins over config.js: it
+ *  holds the folder "Set Up Output Folders" actually created for THIS course,
+ *  which is right from the moment that menu item runs — before COURSE.urls has
+ *  been filled in, and even when a stale URL was carried forward from another
+ *  semester. A bare ID (oldest courses) is expanded so it can still be linked;
+ *  anything that is not recognizably a Drive ID falls through to config.js
+ *  rather than becoming a link to nowhere. */
+function folderLinkUrl_(config, key, courseUrlName) {
+  const v = String((config && config[key]) || '').trim();
+  if (v.indexOf('https://') === 0) return v;
+  const id = folderIdFromConfig_(v);
+  if (/^[A-Za-z0-9_-]{20,}$/.test(id)) {
+    return 'https://drive.google.com/drive/folders/' + id;
+  }
+  return courseUrl_(courseUrlName);
+}
+
+/** The link text CONFIG_LINKS gives a key, for callers that write a link cell
+ *  themselves (setupFolders). '' for a key that is not a link row. */
+function configLinkText_(key) {
+  for (let i = 0; i < CONFIG_LINKS.length; i++) {
+    if (CONFIG_LINKS[i].key === key) return CONFIG_LINKS[i].text;
+  }
+  return '';
+}
 
 /** Build a Config sheet HYPERLINK. Returns null when the URL is still a
  *  config.js placeholder or is otherwise not a real https link — a link that
@@ -1081,6 +1172,18 @@ function configLinkFormula_(url, text) {
   // A literal " inside a Sheets formula string is escaped by doubling it.
   const esc = function (v) { return String(v).replace(/"/g, '""'); };
   return '=HYPERLINK("' + esc(u) + '","' + esc(text) + '")';
+}
+
+/** Recover the URL a Config link cell points at — the inverse of
+ *  configLinkFormula_. Returns '' for anything that is not a link cell, so the
+ *  caller falls back to the plain value and a raw URL or bare folder ID left
+ *  over from an older course keeps working. */
+function configLinkUrl_(formula) {
+  const f = String(formula == null ? '' : formula).trim();
+  const m = f.match(/^=\s*HYPERLINK\s*\(\s*"((?:[^"]|"")*)"/i);
+  if (!m) return '';
+  // Undo the doubling configLinkFormula_ applied.
+  return m[1].replace(/""/g, '"');
 }
 
 /** A blank, whitespace-only or missing team cell means "not assigned yet" —
@@ -1117,12 +1220,12 @@ function gradebookRoster_(roster, adminEmails) {
  * into each recipient's bonus and shift the grades accordingly.
  */
 function generateTestData() {
-  const ui = SpreadsheetApp.getUi();
+  const ui = uiOrNull_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const respSheet = ss.getSheetByName('Responses');
   const rosterSheet = ss.getSheetByName('Roster');
   if (!respSheet || !rosterSheet) {
-    ui.alert('Run "🚀 Set Up Sheet" first.');
+    notify_(ui, 'Run "🚀 Set Up Sheet" first.');
     return;
   }
 
@@ -1241,11 +1344,12 @@ function generateTestData() {
     '',
     'To remove later: run "🧹 Clear Test Data".'
   ];
-  ui.alert('Test data refreshed', lines.join('\n'), ui.ButtonSet.OK);
+  notify_(ui, 'Test data refreshed', lines.join('\n'));
 }
 
 function clearTestData() {
-  const ui = SpreadsheetApp.getUi();
+  const ui = requireUi_('Clear Test Data');
+  if (!ui) return;
   const result = ui.alert('Clear Test Data',
     'This will delete:\n  • All Testdata team roster entries\n  • All submissions from test-team members or admin users\n  • Any submission that reviewed a test-team member\n\nThen the Gradebook will be regenerated. Are you sure?',
     ui.ButtonSet.YES_NO);
@@ -1358,12 +1462,12 @@ function clearTestDataCore_() {
 }
 
 function generateSummaryDocs(forceAll) {
-  const ui = SpreadsheetApp.getUi();
+  const ui = uiOrNull_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const responseSheet = ss.getSheetByName('Responses');
 
   if (!responseSheet || responseSheet.getLastRow() <= 1) {
-    ui.alert('No responses found in the Responses sheet.');
+    notify_(ui, 'No responses found in the Responses sheet.');
     return;
   }
 
@@ -1392,7 +1496,7 @@ function generateSummaryDocs(forceAll) {
     try {
       summaryFolder = DriveApp.getFolderById(summaryFolderId);
     } catch (e) {
-      ui.alert('Could not open the summary folder. Check that "summary_folder_id" in the Config sheet is correct and the folder is shared with this account.\n\nFolder ID: ' + summaryFolderId);
+      notify_(ui, 'Could not open the summary folder. Check that "summary_folder_id" in the Config sheet is correct and the folder is shared with this account.\n\nFolder ID: ' + summaryFolderId);
       return;
     }
   } else {
@@ -1537,7 +1641,7 @@ function generateSummaryDocs(forceAll) {
   const msg = forceAll
     ? `Done! All ${updated} summary doc${updated !== 1 ? 's' : ''} regenerated.`
     : `Done! ${updated} doc${updated !== 1 ? 's' : ''} updated, ${skipped} unchanged and skipped.`;
-  ui.alert(msg);
+  notify_(ui, msg);
 }
 
 function generateSummaryDocsForced() {
@@ -1545,26 +1649,26 @@ function generateSummaryDocsForced() {
 }
 
 function resetGenerationLog() {
-  const ui = SpreadsheetApp.getUi();
+  const ui = uiOrNull_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const logSheet = ss.getSheetByName('DocGenLog');
   if (!logSheet) {
-    ui.alert('No DocGenLog sheet found — nothing to reset.');
+    notify_(ui, 'No DocGenLog sheet found — nothing to reset.');
     return;
   }
   if (logSheet.getLastRow() > 1) {
     logSheet.getRange(2, 1, logSheet.getLastRow() - 1, 2).clearContent();
   }
-  ui.alert('Generation log cleared. The next "Generate Summary Docs (smart)" run will regenerate all docs.');
+  notify_(ui, 'Generation log cleared. The next "Generate Summary Docs (smart)" run will regenerate all docs.');
 }
 
 function generateTeamReflectionDocs() {
   const config = getConfig();
   const FOLDER_ID = folderIdFromConfig_(config.reflection_folder_id || '');
-  const ui = SpreadsheetApp.getUi();
+  const ui = uiOrNull_();
 
   if (!FOLDER_ID) {
-    ui.alert('No folder set. Add a "reflection_folder_id" row to the Config sheet with the Google Drive folder URL (or ID) where docs should be saved.');
+    notify_(ui, 'No folder set. Add a "reflection_folder_id" row to the Config sheet with the Google Drive folder URL (or ID) where docs should be saved.');
     return;
   }
 
@@ -1572,7 +1676,7 @@ function generateTeamReflectionDocs() {
   const responseSheet = ss.getSheetByName('Responses');
 
   if (!responseSheet || responseSheet.getLastRow() <= 1) {
-    ui.alert('No responses found in the Responses sheet.');
+    notify_(ui, 'No responses found in the Responses sheet.');
     return;
   }
 
@@ -1663,7 +1767,7 @@ function generateTeamReflectionDocs() {
     count++;
   });
 
-  ui.alert(`Done! ${count} team reflection doc${count !== 1 ? 's' : ''} created.`);
+  notify_(ui, `Done! ${count} team reflection doc${count !== 1 ? 's' : ''} created.`);
 }
 
 // Node-only: expose pure helpers for local unit tests. Harmless under GAS.
@@ -1673,6 +1777,7 @@ if (typeof module !== 'undefined' && module.exports) {
     SMALLEST_BILL: SMALLEST_BILL,
     uiOrNull_: uiOrNull_,
     notify_: notify_,
+    requireUi_: requireUi_,
     evenShare_: evenShare_,
     charityRemainder_: charityRemainder_,
     validateAllocationTotal_: validateAllocationTotal_,
@@ -1682,7 +1787,13 @@ if (typeof module !== 'undefined' && module.exports) {
     resolveRosterView_: resolveRosterView_,
     validateRecipients_: validateRecipients_,
     gradebookRoster_: gradebookRoster_,
+    getConfig: getConfig,
+    setupFolders: setupFolders,
+    writeConfigLinkCell_: writeConfigLinkCell_,
     configLinkFormula_: configLinkFormula_,
+    configLinkUrl_: configLinkUrl_,
+    folderLinkUrl_: folderLinkUrl_,
+    configLinkText_: configLinkText_,
     CONFIG_LINKS: CONFIG_LINKS,
     decorateConfigSheet_: decorateConfigSheet_,
     CONFIG_NOTES: CONFIG_NOTES

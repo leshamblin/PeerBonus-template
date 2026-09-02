@@ -73,7 +73,9 @@ surviving in the copied Config tab).
    Web app URL for Moodle:
    `https://script.google.com/a/macros/ncsu.edu/s/<DEPLOYMENT_ID>/exec`
 9. Fill in `COURSE.urls` in config.js (exec URL, sheet URL, the two folder
-   URLs from Config, instructor guide doc), `clasp push --force`, then run
+   URLs from Config, instructor guide doc) — the folder links appear in Config
+   on their own after step 5, so these two are for `createQuickGuides()` and as
+   a fallback — `clasp push --force`, then run
    `createQuickGuides()` from the editor and share the generated doc with the
    instructor (or use the gasdoc skill for the full instructor guide).
 10. **Register the course in sync.sh** — add its folder to `COURSES`. Record
@@ -138,24 +140,50 @@ to reconcile with the template (diffs exceed the file sizes).
   Summer I version (Code.js, `isTestTeam_` filter in `doGet`). Change the
   filter back to `fullRoster` if an instructor wants to preview the whole
   class in-app.
-- `reflection_folder_id` default is intentionally blank; **📁 Set Up Output
-  Folders** fills it. Never hardcode a folder ID in the template.
+- `reflection_folder_id` has no default row; **📁 Set Up Output Folders**
+  creates it. Never hardcode a folder ID in the template.
 - The Config sheet overrides config.js defaults at runtime (`app_title`,
   `app_subtitle`), which is why config.js must be filled in BEFORE the sheet's
   Config tab is first created.
 - **Config sheet decoration** (`decorateConfigSheet_`, called from `getConfig`):
-  link rows driven by the `CONFIG_LINKS` table — `web_form` ("go to web form",
-  from `COURSE.urls.form`) and `instructor_guide` ("go to instructor guide",
-  from `COURSE.urls.mainGuide`) — plus a hover note on the `flag_threshold` key
-  cell explaining what the number does. Both are presence-checked, so a cache miss (every 5 min) is a read, not
-  a write. The link row is skipped while `COURSE.urls.form` is still the
-  placeholder — it appears by itself once step 9 fills the real exec URL in.
+  link rows driven by the `CONFIG_LINKS` table, plus a hover note on the
+  `flag_threshold` key cell explaining what the number does. Four links, all
+  reading "Go to Xxx", appended as one block at the **bottom** of the sheet:
+
+  | Key | Text | URL from |
+  |---|---|---|
+  | `web_form` | Go to Web Form | `COURSE.urls.form` |
+  | `documentation` | Go to Documentation | `COURSE.urls.mainGuide` |
+  | `reflection_folder_id` | Go to Reflections Folder | the Config cell, else `COURSE.urls.reflections` |
+  | `summary_folder_id` | Go to Summary Folder | the Config cell, else `COURSE.urls.summary` |
+
   Delivered through `getConfig` rather than `setupSheet` because the menu hides
   "Set Up Sheet" once the three tabs exist, so existing courses would never run
   it. Add a link by adding a row to `CONFIG_LINKS`; add a hover note via the
-  `CONFIG_NOTES` map. Because each row is skipped until its URL is real, you
-  can wire a link up long before the thing it points at exists — the row
-  materializes on the next `getConfig` after the URL is filled in and pushed.
+  `CONFIG_NOTES` map. A row is skipped until its URL is real, so you can wire a
+  link up long before the thing it points at exists — the row materializes on
+  the next `getConfig` after the URL is filled in and pushed. No link key
+  belongs in `getConfig`'s `defaults`; that is what keeps the block together at
+  the bottom.
+- **A linkified folder row is still functional.** `reflection_folder_id` and
+  `summary_folder_id` are links the app *follows*, and `getValues()` on a
+  `=HYPERLINK` cell returns its display text — so on its own, linkifying them
+  would send the reflection docs looking for a Drive folder named "Go to
+  Reflections Folder". `getConfig` therefore reads `getFormulas()` alongside
+  `getValues()` and recovers the URL through `configLinkUrl_`, the inverse of
+  `configLinkFormula_`. Raw URLs and bare folder IDs from older course sheets
+  still resolve; `test/configRead.test.js` pins all three shapes.
+- **The folder links prefer the Config sheet over config.js.** Set Up Output
+  Folders writes the folder this course actually uses, and writes it as a link,
+  so the row is right before `COURSE.urls` has been filled in and immune to a
+  stale URL carried forward from another semester (`folderLinkUrl_`). A cell
+  holding something that is not a Drive URL or ID is left alone rather than
+  dressed up as a link to nowhere.
+- **Decoration compares formulas, not presence.** Each pass rebuilds the
+  formula a link row should hold and writes only when the cell differs. An
+  up-to-date sheet is read-only, a half-written or hand-cleared row is
+  repaired, and a row carrying older link wording is corrected in place — which
+  is how the lowercase "go to web form" on existing course sheets fixes itself.
 - Denominations are US bills `[1, 10, 20, 50, 100]`, $1,000 budget (dollar
   version — the euro/Spain variant is a legacy fork).
 - **An even split gives every teammate the identical share; the unsplittable

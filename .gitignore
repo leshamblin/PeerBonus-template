@@ -3,3 +3,7 @@
 # Per-machine Claude Code settings: local permission choices, not shared
 # state. Was tracked by an auto-commit; untracked here going forward.
 .claude/settings.local.json
+
+# Per-course Apps Script binding: script id + parent Sheet id.
+# Each course copy has its own; it does not belong in the template repo.
+.clasp.json
