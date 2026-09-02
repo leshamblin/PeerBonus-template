@@ -481,15 +481,26 @@
     const FLUTTER_AUDIO_B64 = 'data:audio/mp3;base64,SUQzBAAAAAAAIlRTU0UAAAAOAAADTGF2ZjYxLjEuMTAwAAAAAAAAAAAAAAD/+3TAAAAAAAAAAAAAAAAAAAAAAABJbmZvAAAADwAAACIAACdgAA4OFRUVHR0dJCQkKysrMzMzOjo6QUFBSUlJUFBQV1dXX19fZmZmbW1tdXV1fHx8g4OKioqSkpKZmZmgoKCoqKivr6+2tra+vr7FxcXMzMzU1NTb29vi4uLq6urx8fH4+Pj//wAAAABMYXZjNjEuMy4AAAAAAAAAAAAAAAAkBDIAAAAAAAAnYH3dTG4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/+3TEAAAMgUlAtDMAEmGsqv8e8AEAQAAAAAJuBizdz4iIm/3/3sghn//shGOeTJkyYAABAghHggAwGTvxEZ+0RER/3s8mTvX7REfxesYQIEEMjLJg4DC09u973etd3d3etd37u773+0RniIiIzxd3d9ohOwfy4f4YVHRnWImbREESkjUJQBACTT4MVZVKmPwnHPSNAPIZzmdhK4KlN8Yh/H8EDNxMnehjDZmaneVe2ss+63/03E5VRvMtmLDDLTcB+hzG8fOL1l36tmsRp85vBfPoN1M7+f/Wuv8YxhwlmfWlhW/rTVa//71rWKQNP3ngS2z/jPzr/0+v//+8ZU9SFe1Marr4zifFs/5tnU27KVMqTaWZIDQSEl6lJWu2gcr/+3TEBwCOyU84nPMAAhurJ7DzDungcZbT+xg6m2MpmcTJPTfm2Xoo9NAiNDHnDUzqWmUHztSM62mkxtGclZUmZmZehz0z660OV2ZiqRVUbaZVWXn4/DRGAilNRx6owp8Tmnefua//rPVy///9bqqprampszGONh0AFl4xW7uOW1BAEVgySIQo50WujpSZKlJKxtyTbm9VRtQ65iJk/iWJBoOddaZ1P2EMFhAKHGCyiISFDScJkE0sFlFhYIq6SFEwYimYXVToa4AzEQgmVl8w845RT1EWlaLw2MxpiyZm1AdnRXzRHUPFPNKRkaX330uRxieWUyQz5sTg4KTQktXJV6T//dWr+RMAFgW14yhbgUoJlRiPHSoEcoz/w3RkR5H/+3TEDYDQHU0yh6RzwksvZVDEjvFcrF+Oh5Ko6WuIDQmBxAWnAiVqXmtHNd25TJqt6FkVAkdTFCyUpwQTmDraBzE4ySXQyNmc3PTSx8lduXTJqzi7rVrbbyR9EBqAhERQw6RRBJCvSNDp68vkUpGZQymKDnQDOKDpulDdurAARAsfohDG40gCh0EhLRaCRkJROHlWSfPC8PZPHY8QkAhJAJkwSUTiM46WFDRCwTKpU9huJMaJCMwGCpoRnERDxIBZIKS/HS5Eos1qy68yYQxeoq3SQiXcQ2sphxNJ5IbJcOsI10MIN1WpEz0SJR7SkWWt8Luaw4xARo5zhy7WEwJrDhmJYj7kZ++a8p9C10p267QgDqLwgMdAuI4DhqIrYgH/+3TECQDO5OUshiTVAkuppZDEjvGrgcRlSp43W58wWVJk2YtlUgySFzRG22TL5UvfggvUYu7GyBdGiRPfMpFzY5JpG4s6aiAF2CdPBrIWmabMl3ULybaIOjIi46QFCxEOnXoGNcVEoyDBhRdRKEUuaLs2KADEXF7t1KFbiQAHUCIgcA8ShzEcBIRi5g4VFc7LhdLNikJ5GVgzFJyOEZUOhDTtB6DNANhY6Tt3RCOEInNvBMVmwmsZJhSINPgHGgTBY8qJhhyxwbdc4TEk4Ns9VJNYgQsKohJFlys2U2MheuP/d6z/uE+v+Z53delV9rIfkR5FP3Q+iJwoofA4Q3yb/KMQq0GEFBbImlznQIVlaEIAAEAAwkXpd0+2ncfkJQH/+3TECYAQ2RdD55mVihifqLj0jjlwUhMD8lYXPLA/gVnfpyE4p57DZXIWHGkhMAFkgMpsJ3u60Yx/IZfQIH9JY9yBnJ6QHwQLTqCER7qHvX8VNk4fLu/maXbuTTPByZmWzwlnaCJHLDgECcgK0RgpfX3sYHEiB4YACI5fH/mI2+QACADr/+/9zhodXYhAAQAIG4DUJ4hhelMlDRIGj0omDlLgdT66tlesqwNClgtIRDNPUJyGJZ7mIJJocJpTpFaIqHiFoUwJkRChqDNImkxTALE4BhMmGUiZOSckLkT0MlkTLLLvKQaxjOksYU4CAlQFWBIqgICJKv9IQbFn/Tff/7WwYeoH1fMC+qhFOodP28/zACUGePQ4KolZ/XMbbgj/+3TECICPDSNCh5h4ifydKHj0mXFCEIF9HfKCPDkVjJKfJdy/mgqE+7fvGROLKpb7PPTX852zcTMXEYCI6QGFGQ592TTg59s8PLsW+gZHIIlMxLohyDQz1OyVqhh1dzdxlDvXhIeWM6mOaTMeXTLvvNXN/Hc3XTro+eRjbPDtKoIAAJis44T9FJZFWW4eZDwYhImhGCKRsRIWZUKhECQJCpYiCwBgMiEESVkKoS0kUl4okTVJUcTIDgIloKE0FBSYNpFVEiSwUGTQJeqnaOOLhI3Hq81iR1VMGt+blPlVDqKKuOi8NxlBXFQWosxb/8J6CitZsovn2b+rOyWx5FwAAClQqS+nA5MtDBSKvYan6uVbBa1UiVCMj7CNguiTJrP/+3TEEgDPbRszZ6TPycadZrjEmbhgcYWNEiMqwibQwR6jpbbD/OIyGTEid9EsCW76OIy2piqJFHGsKeCe2fkAezD+/9+S05pRqpTKjwbaK1382cxy87XFHmaBV9D25VrZ+3pwMuBnaJzfqv+tDOzwyAAejMKxjSAlI2SyfoTQlk4RiQ4gfIhYWBIRg4KUQlLNHyErQrx7GZcu6V9lSKiKK0kBVkqPHXlqT0wHgwiAYPxk0CNLI4UfznowtJjtitx2x5O2OjNlwtEHUljwQZDlgjFWMMdBenY7Y/cuaU5XeEljIAAAAh8KgB158sAShlugUggZhgEyVMcn6wvtmURUIa8wOx8EwcBoUmiVlZ04N1LYMb4wbYaZUZaaaSyCiDr/+3TEIQAOaOc3xiR0wecgZvj0ofiJQwMUbxEgdkcitu46aWXhGiHFfgpwVwZpJgUSJDBybQsLl0WpdwNF4+hUUKmXuFDCHaIV1QwAEABFAK4cKLLAQFIi4Hud6tVTYc7dBdubC7cgXEQoNChALkDu9jBlHl4xfv41Dal7wuBbaM2KFW0UH0yRISeBwhWYvXv2LsYWQUYwvJbpzG1Per6vu7iwUG45oUcsPtLkizAkdnSXLveBybUZpwYX0Tc/Wu+W1xFgAGIiVwP0lxPVgcbmyJZwVagrZ+ki2tEh2LkmDCX5ctdLYGE9XWmCqbyzTMRTXPmbzPPIYiAAE5VWKq+X/pBR29N2nPfD1OZtMNt85MSkY9k7/ZA5TW7u/hBaIg//+3TEMAASVYE5Z7ETwuYwKfz8G1DhKOGItYpItLjhchXHm/9T3CfdzN28VMalAoJDsoXKUdq1V6cVX0930KBwZA8ehghGW0zmXFyyALtuZToTi2rhzkjJMylgLgtoQrbq4nGYEkZWKyzyqfYliSLs/HiPUyNUZNAK4b4jitOdEHgK+ViYJYXc1w4C0BNtaL5w1KVggwA6NEsxGVtDgCMpQsyOLom2JZ47OJBgMCHcMWhgmA8MNu/J2Vw0xB64XKKr/2pfU12ky7jYeiHTrI2S+7rACRAsmzn7j60u2W2w9mYTpAySbQ/jKd3//iJcyC0zSbnlEC0yCiZ6yCAPeFrdyCq6u3d1EwIIACVPRV9zbuNZijvtHhUEUk/G5TRU7E7/+3TEDwAO6VVR9YQACokqbD8w8AEfMMigFgKNVkFKlozJEjyoxBQYUIZswqCFAmL5QRjqQOihONFCnFUFoFrXH3JLksc+3T/PF/zzbaf/8GyNN/e+uq9OK+/e5+5/mm//r/7SSbipQr1TkSFU2bMqrqIdzQAAjHEwFo0Hk6QOI8yvLqFEnZyteTprMBa8zuXMiHDR1OZTEpXKPXZ3RDIqSEZJCZ2Z6m1iqdRrbT2OpwjqIeuE90+XtTQYT863LUWzm/bpL/xa2ktm9NvHF+/pGfR6VrjO669mfGHsB4vu7VxDjX+aVx8ZrhjfqhTq+HGyzvMYlrisb23v////xIbHOz78feM/4g0cn1vTvK9Q47rc3ajWdFUyMxIAEAhApuT/+3TEB4AQPP9h+YWACdAeqG+ekAHYbSpJEiAhYKCFlq7n3ziN0vUlRUklmVQO8yNoJRoP5KVTSRNWplaSSEmr6p+Ng3RTUomqhoFxyJjIdg7EQSZiOJufemIEQZYanrvlv7m/3NnDdVmyO+Wxfdd/q32cYmQVNvZp1OVX7Br+r5bF17uz6mtjb9NWAABJKhBeD1R6Kenwk1ckUQsy3ZbtkooVYpCgKI2orV12SohJ7mgjCE1nSvU65tgtrJ/WlJ28VPQKrZLY5K7imxaLyfKNXid2y5h2ySqebccrPv9XGq3pQ10Q5MutcCD5Ej/xtCiZ+tRnA9OFq/b9P/u2vWwAIQZacLAsoewTD+Qxiqf5eVmKwMkUesOFpgME5E4QICz/+3TEEgCOxS1Ah5hvya6p6HqegACSYQ5uWXJEnIXV3Kl6mln5JS9omyk/SCAOULJ4gmLoVnOC2FBHZAM6pDIZmznBq8jgqJhFHKoqidq6qqvFoXQiMkJw7iERC12XR6HJd26/dPyVMzIiQJgADB0xyZqE0lhkNA9ZHaLOeffyzlhg3EAQgECwlkSk5CHSSJyPvR3UXMWocrS0mWEOiU4POH2PtlmstYO6r72/lZ+4u/kp1vr/WCpVfnWuG/2b/X/tpbVV6vqVhrZrGqAjaTpxlb45mqmpq3pVYQUQsSJqNR6WsY6+zurpGiJLytvnvGkPsNAhhebKXqSNQ2AggXxTwLYCaGidSiTjETc3BxAawxlA9VioNCILipVCiGfLKkH/+3TEJoAYCXlV+YeAAcwrqb+wgAHNDmh+wubAmR+EN0yNzDG3ndt1yYCsMtV4WY7jXXzEvvMelpnkdDV0/Yl+mNRsys+Pl/HfxprsDDpieK6qseVzvH3iG+34+O8rvHhuTctqGytgY3Tfx9+fXx9U1TUS+p5Mz171QrTQoYG4TbAxCOf////6puWl3EQAAAEI1IFIQWU+sEO/dhcEv5DMxKn2kf1YyLMcUdQw44OQWg1FRXOcljaKuluTomohmOVRUVNZiRBFhZuqYoWWLr9ueb22v+a47/WPlq5WapRgqbDNF8xHP/8W3H8rX//+//+dDdnWSwD3nlEw2dVlhmZiIQAAByGp9DTJOsfC+T0mh+TAoeEYhyBp1SZnfLMIEyH/+3TEEgCN1WE/x6Rpya2S57j0mWkaERzSdMhmlKerIYLJhIolglUAqPJ84TaqlZaf49rFWgNAt+HQlawwq9P0NIK596Vz6n/M/5e8NBX55Fv/98UxBRBlVE5PlNgp/eJMy7uggADRIIkY3zBM0+TzVhSKFEgTIMrEgLNqoOQI8JzRUSshqSZLtzLnVrlvnyXMZarvDZCiBZbqvTzTvyjU3VzCAYeZooER0QqtGR04e2rn4A0pUl3nanlNufZ7dr5pHa78VhSZfmFsFGmoqmIQAAABLwWgsZYxSzrNBHmQxtB+JxQl/t2BnnhKRkVifNNbq3o8GMEGG4P6TRSZhBloTdMCAjkCBrmHQQ5Bzx77BBsMQxS1oBzEWotxiep5793/+3TEKoCNhOs/x5hVAcKXKDj2GPnex0NDHS4jOLIUiWBDi0f+61QozLxp1TRcs7CIAA5cEcKMlwY4QxLHgCCw9HAjj8W5dds+iYGo6BwTCgdmy87EE/b1GRURQQacyYyYnLDmykSK+dIWNB25sZtq0y6jc+5sdn5fjr+PsfR/UaqUdJsxH2sbNv/up5+jv58zDusUkF5x4LF9Qe6di6qnljADGlEnSyhh40FB0ViiUw5e0oEYtYnHdmW8mxJl60ZNrnG2VgoTsCjXIyyESmmZqMooIElC5QjEBcUHyIqeFQhGi44PiYUoisGzA8ShkLCEPF0BslZMkx1AjI1aax1FLI75jQZZy6Sxn/+vR5f9Htb3lw3/fhjFxzjpWwLk4Gr/+3TEQYAQTOVP5iRxyb8fp/j2CbnOyQpmAAAgJcRTg2UUniCl9Ow5nJeWmVkP58kiCy6bJegZFSqq54hD979C5Raza1EPrU/P56asLDL7e5urfdhmdA07Kqq9dkpCHEuL77v6XZAwELMONsSlWCy3SZux/7Eda1x5pvkb/RbO3vim7Z0qOsdpgEWrQPm5/BSv9CMD8RCGR2WfbaVLzvy+bHxZR1IpGAhoVTI3O0yfNQ/2CBsGQe7ImENYmWUAFyq4eFw5iOWvV0YUSQKlCSoqWLpAtNzzbnqMJEls2QXrpqp9tHMSxwX3kbJvpqSokgKEOa/769331d9tREw8wqgBoAOTJLhuuwROaKPG/ToYnY4GQ5GSc6A4JCUaK3Zeir//+3TETYAOpQ02h7DFyb2UqHmGGTlTz+Wju6hLA5jgUvrz92WnCsXjor1koT0iZdGASospMvfmPbo0gAh8I4dM+2v/qDdYijS9mvpbad2Td//vaM/7+umb9pJvX2Z+qoibeGUwAEAAFQWQpaurB2YOXYylu1O/bhM4lrptfi79C8/LixYlLbilfBS36iYMVjxPTUWVX+2rjpSl17fUpzfnHVux+JHf/Moinv3cqcEVzJ98v5wjMkLCEZ/EDoTu6IC2ZDWal6OEBBhg2SQPhxLIXK0txOQoAEFbEQdKI++blC4G0WLnSsCqZG8fBtBGzcbD/RB0kvUEZ43pG7Iq2edwb2pwYID+zax6nf3RBonmnITi8L+QsuarZ2RgVkWOr4//+3TEYIAObP1L7DBvwnevqvKQ8AEN/HvamJk+j2N/jWMQIs8RvjUpDjy3xamtZf1fv1e5wWf61TGKazl/jV7/N6YePKUziWbFL49M+1P8QKVvqnga98RMRL3/ze7zVIkO8feYg+qJl3WUYhIAAAAAAAAABYVVc2iVhQWBbcVTBckiiSnyI4HKQAzKH0HmgsAxlUDu4WbeIZFDMYiz8N4+pednr8P9Yld+Gb7lwpmM+jKom31JnNwzN2LUbHBKcyQxwRziErno/GWu00C2qbk9bXWl49sBLugFvdX7+uXJVjQYX989+3aXc20MsFgKTSv61qlxlV7eOsqmfLtHWp5RZs08VsUu8eWcss91q38y//1+vq5SOZyu2MKuFWMyjL//+3TEXQAaQYFV2ZwAA1WvqTsxgACb1rP+/ruX46/D+9///6XlMIhZEKPEv+lmhWZDMAIAAAAAAAAFJoaxErHREqIVJKOSpJgthpLMlzXVE6lO18Ag23sba0YkgSJuAsNMPC16VToOmh9BbPXSadFZPcp5ZAb9KDNjfSNNxhh5HXpKO1FGftYa6shiUqlUhd96YvSSmCIBiEVnmV0riSxscAS6FwHDstv2a2MhoZbasM7m61V+m4sw/GrLceSuxhnzGrjav2oIduPyqlrRuiluGt9125l/7y+7luU67z+R/Ur1GY9Wl1W5yX3c971r/x/9f2zlS7wy5vP6uroqJTg9H/2VRmeIUgAAAAIPQTA9GOwNRCASI0qCmOYrOGGjg6L/+3TEDoCOdN1F3MSAAbAWKLg3mCnELlSRMPNS9CInwxpcjgz07XQcihTRRuSGGpu05MNVuxRFS5Nj+kQkFEcayK6t3kF2Ec3fKyt3PX84vxrVqg+CQUVhonBsZY+oC7CVAqt1IgPki54VpNJEs1sggADiFFpPozFAe7osUdSJyhtKEaNIOimkimCCBJyiKVk7w98wtGa0kshVNrxTbqkj1qMlPCMGUZR6kmXDM5iNx6LICWijRGWPhUxous/CutyJ2s9wF2Xds37n8rdrAHqwGw1v04CGM4pWanhjMAAAAWU5DmS6TO4vAsCcJKnUNUCkXd3JQq2vUkwshUYTKhVWAuiLk6yz/024eb/SOfrI56qCWztDOj53ZIjjS1QA07n/+3TEJACN+N9Bx6RvycAc5/D0mZkgG8I83LVtp5XLIPQu07I9QomENINe7u/aa7XaOff+7a+/73uqr7f2bWepAAEjJGAgiKOdTJE7Foxhus6QeI7I24FXoVUIiXR2yBELocWjUxUouyGI3um2jctJ7OG6Jhskwk4aEvahKz7XSdb8Mglm7KGQ9XU21zO3na0UoppJt4krurmM50lQ7vovm5f/KgLwMmXlM/k/7s9dukAAYLQ4UJeF/W1gv7AeUdImmX06NXgKWDe5D+Sg/NMGci48eeKSMHtJ4vASXUtHlPj4Ls86TJaq513G8JMzVmC/c57EXCdfWnXDPLKyvEyknjo2MoXimkH0vUlWF6S5WXtdJupLuNlCaKEdlZ0eUQz/+3TEOYANmQFDdPQAA22vqPszgAAETAOEKGPai3rDweIpWWklroM2aI3wqFAbcJQ4j1HOOaokQhtf/gkodN3ncibDGVxB3hhQAA/c9A74yiy11AY8MXa7VtyJ0a1ijfuXxld73vdJK1du9eau3ux+ekyDj2KWlm2PMTjFfu5iUVqSUUvbVmhjH0csoVYHj1+uU8zWs54ar2qtqOwOpu+zJHIcy20+Wv5Nb+vrPuN7crtZZRqpT5xykaZLKeYmYbleW8s/3vX97n3ve8qYZ6/8/7uKPJN3rtPRxe/Zl1Jb293/+Q02f+XBz8zVuYqrp3dFICIjKQARRBacdVasdssWVhcZCQiQ0Zd6JQsphogg5TAqCuBVAXNnfHVoDmCeHPD/+3TEGoAVbWdh+YeACcwf6XuwsABi0euGS8kxQxv3DXaqYp3FxVw+l0qYXr7XrdFowtpoD/V1vJGlrX7z/DYDmU80NG1r/B1jWd/6wrrJ5ffJFSM2/8+uvmv+d67mytSldsy5bHFi9v64jf/7+MY3/1yvnIn3N63QI8BibWDOa7+tfWf8b3NPK3K/cU6oikAAAABBxWCXFKaRUWnRiEPXY5A7SXcp5NbUMVrflxiPBNHcwdpAEcGA2FEeyYO5FYuK14OQmk6G2yKqjAuWQa3RdNOmmGz4Pd/M9/qrMj+6z3/+7mrTh9Ml0fq1Z1NykgSFUjH+3qkozFQ0pSIoMcr/3esgAGPAWowTIMRIp1SoWXFKxzeQqHuC83PFgeIv0XP/+3TEEICNbP9FZ5h2wcQfaCz0mTE71umiOatRT3mufPg8jaU1u5C881B6NO681MaeCF4jCD06MrU89kOmbzmWRE6ZForEtiM9r6sJGCjgE6NEcNmUJockBXcUBIi/VTp97GAArCTPBFqAnCkJufKdGRAgAcoYRhDF0VEKxImZNLHiEMjZuEr1GIFN5haJU346G5NEijFyUSJ0BKCNGGPG+cbWYotjGdpOij9jzjNvdBolnLraTitXmHaMhYhsuiax3X/vnoqUVN1bqO//ZO17VWRnWURAAAABEUcxpbDBcBNGQSafj2ckVO8fMKT5o5rUcKQEjjWOs5XGIQZDdpQ5HPU+FMKMQg40cULlMPFDhhBxRUQo3TcxrpZp3KKGmvH/+3TEJ4COUOlBxjEDidelJ/j0mSg21K4xUs23H0jHJSyU5bAsgeOUs6Blyj9txqrOoLPdR3DvLbSHZHcyAAAWFCa54GwW9OlCrDhQBYaFIDtnUUpLw6WiU0ddEa2qTCwIy0SiJ1JX0pjnci9ppGoyYZmwYVPMq3kvCMTbbuls+e8hB4zLnC2yIJ4446YYize4aKNPKOzvvuvf/nMzcfrARcYsCQMIT7lThD3PFbUKfucrgESwLcC+BteEZgVaJYRe3U4M1CdIFQyPo8gTLBASEBZzmlHsZFg81JnWJd1Ttm+mQKO01YeDDiRul2xzxOz7VEagkWSRTS9mMy4z0NZsNzWpK0kM8eHhovKlZ+zX15cupeIa5hKkV6oYT3YF5zv/+3TEOICOzUE+h7DDSbce6HDzDqBziIvW/1tvJJAACRgkIKkpEaLaDZC9IKnYqlXZzJ6BEXk0hZuVnhv1t3PK9ZeAGUlvJjYnzG90hUE2RtWEpLyfumG4YBhet21+Xl7TOkfEI3LPHw4Kx2HcmoNJ7wUeaDDz0CBgRp3iO+hbISaVFzi36jMB1Rh4NENQAAAB7xJSEYXlUDJV8zePT1XGtZgTrNJWQAxJQU5klrBCA4FJ0lG35XfnHPdvBaFMhMKtPQr90TzK8E9nmQZG89tm6ji1OFTexQ+7ig++9ZE3cEu+iJ5m5m7mbe53qF6EM9PoOEVj3V/mPaAHaWIhDZDAAAUMhC0mHUPW2DjQKVkfQjvYqyKNxJJyDJxJZxxYKGL/+3TES4COOUFBxhhxydAnKDjzDfGRBZXCCHSqG7ObNmFZ+haC6XNDRYyuIHKBSQnyMuR7QaiRQYsEoVDMmfrM7fmFjC6QlaxotTCiWMoGqkGJnPZmfYEFPKRSeXH8TUipTn/tnNciICEFwEfOyDQ4EdkJUriArM0Zy0pfgdVnyRHeIrqzhhwKBFgwuyDDS2kxW26R5eWlUEkPDOchY8wKgllHEMhoSyMYuF83SRkSrUvtv7QQcow09LrTM3H0urOWcjns6v98umeAoSLBzUZEbEpXbz1t1P0M8qsMpgAIAEPg/oILk0MiuJY/y4GR6EUfF1JqYWtDdckDwvHZWQA60x1xmHlLbbXnvZyDd5yRNOwcmkEI6RPVTKLypkehi0j/+3TEXgAOjRc6h7DFwa6dqHjDDfl7087Ye3230zwZIw6AaDlt+rHy/c/iHW96u+R+SsypPU3n//yKq2uGMAWABisMgBGLkJUcxLm9xQKoQhNq0Td+oG4ws6tiYEcXzNslkydCPtydNK7xHNuDaNlEQvciJCiGnoEC6aaORQoWQm2NvNLq1leFOTKssr/ELdTemDMWcPPa2xF6ZlTBGcHuINZ7vWgsoPGgI71cOxEAAAYhdDsUpKiVjvJNBL4s4cEk55gt6zkbArQoiISZFCRE2FjFNIH+sqrqV+W7CM599QTVQrGXCtAwIS5slZu14k70kVnLeROBzSbqU13KsDVUDE+KGnj2bKGeOZABnkp4vC/PO/9Te/3eo+2CmIl3dBD/+3TEc4BOFOdJx6RvwcQdKTj0jfkAAAIWkD+YRzkLGQHQaRLVGhicOhKtcje5aujRtrDChQNgmK6EgoYrBQgKMWnOcp7e/wiugUTRo0aNeamMMJQonbEiBiH7RHpvoEkd3dz9yiV3DuZu7yIIABbvDBxM4GEIQc0MXmwfe/WD7Fh9qxOqYRLw725GACAAwdhYBwn8T6YtAdKgVHgqTBsV9otSPx+7cqk0s0RpQVwkFGAtCiySVwRs4lLsdVU2/Djj+YbqVAgMAgYBKxq16/yXyczM7zMzGa9VVfy9bkzKMrKhNoNMOhllsOqSxqBMernixvI4lYtaqlSGVzJAAAABNRGA4P4+DoDVCE0D68aUxkJTypey5rTSMsJhlpViRcn/+3TEiAAOzO9Px6RvwcadKfj2GLhNKJlXenIn3DrPVtOiJpZMz+k8Kws40sKUhUQ2YWlayIVCCqRm04Ji1kYNSqlhaxRUtU6aZI2FAIq4haoJCjy0APuN/FFt2GSyzIrEO7SzGABAgIaAiA9RzEILc6H0Dd0ESeoIJKLj5iVNdNROcyBCfJ7Tm0soyO2eBqdyyewz2y0/L40lycX7DYmhmXCVPV1ud4f6lBOGNYIFkaVkGEJp5x/U+Griu/t4m/433Ir3H9fzTv91vd+qjyvqYAeDMRDIVmyGbCWdn4enZKRQVL6g0vSiM8UwtZlEjMttp9hrkDmRA9FicyxEvGhiSx+iDRSzh5tQcUDjSPj+4/peq9HvrjxQ0sSHNS3jiDL/+3TEmYAOZPlDxiRvwbGXqLj2GOEMgxFPD0OzDxc8YPLj4SuOKmZb5UmqkjIerfvb9INXidAoGPVtsrE0pRwIstq3l6Szy9YdrF5gnxto4XkhDOiqPwtBmB8AgLhYDodDyJQ+Dh8kRqTTk5AnCLajBdJ7KaWPYXe9hdpC0eFZRtBuKY8oeEgjRDgrIDqIyYbIFTiulspl2UjRwQOCuBmMf3r6V1UdNJK91fHc/quYwYnI6afTSkLaWpmod0MgAAABAVAEE8x2gaJeVeaRYS6F+VrUuYGnrJYSQFhKISmRLMLiCiRErSMypj52Ntrmt0mQK0kNMTNZDSk3M2DSpuUwEYMxqjH/HI1nmZlDMW2a5o3AcIMdWBlAXtvwqLoHTDT/+3TErwAO5WNAhiBZgf6cqnDEjuFVzgoWGPqfk/2Wljv7+/us6wjKwiAAEDUOQ7TRF+cpvm8gan+ztZd2B+yNwkMWGB8VDkTgrt5ocWSLDA/OD0hhljK4/rRJIQdkRiGyMIA82EGoLitjDK0jPapqHiplEQgdtDpXLzf+1VtD5KY5puzCrmqCxlXDatrhlrAVbmHQaPLlKpAAAAAAMFEYGT4XPC5VcUkCUzHEAwMoVMT2AvEAzyEAkoOUQ4r8JLwAhQYBIqTJpymASKCgcG8Izh3Ur4GBBAmFEEg7wGHDCznMTFBf8SsPqI5DVIJgAs6F4VaSn/gYkELmGNHAOaTIrUyRXV/+QISEQsITA34WoLmhqpDqrX//8XEdJ0TcXUz/+3TEuQCO3PNJx5hvycmhKLqegACdIaVBSRdYy////zpASCqOjkpGKKJqZF01ghdMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+3TEyYAUXZcmuSoACAAANIOAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=';
 
     const BUDGET = 1000;
-    /* Allocation rules (Spring 2026):
-       • Bills are drawn from a fixed set of denominations (DENOMS below).
-       • A reviewer's total must equal DISTRIBUTABLE_AMOUNT — the largest
-         multiple of $10 ≤ BUDGET. Any sub-$10 remainder that the denominations
-         can't represent is MAX_CHARITY (always < $10).
+    /* Allocation rules — mirrored in Code.js (evenShare_ / charityRemainder_ /
+       validateAllocationTotal_). Change both.
+       • Bills are drawn from a fixed set of denominations (DENOMS below), the
+         smallest being $10, so every share is a multiple of $10.
+       • An even split gives all n teammates the identical share evenShare().
+         When the budget won't divide n ways on the $10 grid — 3, 6 or 7
+         teammates out of $1,000 — the leftover is donated rather than handed
+         to one teammate, which is what used to happen: the odd $10 went to
+         whoever sorted first, putting their bonus ratio at 1.02 and everyone
+         else's at 0.99, so surname order moved final grades.
+       • A reviewer must distribute at least DISTRIBUTABLE_AMOUNT; only the
+         unsplittable CHARITY remainder may be left behind.
        • No single teammate may receive more than MAX_PER_PERSON. */
-    const DISTRIBUTABLE_AMOUNT = Math.floor(BUDGET / 10) * 10;
-    const MAX_CHARITY          = BUDGET - DISTRIBUTABLE_AMOUNT;  // always < 10
-    const MAX_PER_PERSON       = 1000;
+    const MAX_PER_PERSON = 1000;
+
+    /* The identical share each of n teammates receives from an even split. */
+    function evenShare(budget, n) {
+      if (!(n > 0)) return 0;
+      return Math.floor(Math.floor(budget / 10) / n) * 10;
+    }
 
     const TOKENS = {
       10:  { cls:'bill bill-10',  label:'$10',  img: USD_10_IMG,  pile:{ w:14, h:7,  bg:'var(--p10)',  r:'2px' } },
@@ -506,6 +517,11 @@
     } catch(e) { console.error('Roster parse error', e); }
 
     const teammates = roster.filter(p => p.email.trim().toLowerCase() !== CURRENT_USER_EMAIL);
+
+    /* Fixed once the team is known: the most a reviewer can hand out in $10
+       bills, and the remainder that therefore goes to charity. */
+    const DISTRIBUTABLE_AMOUNT = evenShare(BUDGET, teammates.length) * teammates.length;
+    const CHARITY              = BUDGET - DISTRIBUTABLE_AMOUNT;
 
     const state = {
       allocations: teammates.map(() => 0),
@@ -658,15 +674,12 @@
       }
     }
 
-    /* Even split that respects the $10 grid: every share is a multiple of $10
-       made of the allowed denominations. Any leftover $10 units are spread
-       across the first few teammates so all shares stay within one unit of
-       each other and the total equals BUDGET exactly. */
+    /* Even split that respects the $10 grid: every teammate gets the identical
+       share, and whatever the grid cannot divide n ways is donated. Equal by
+       construction, so no teammate is favoured by their position in the list. */
     function computeEvenSplit(budget, n) {
-      const units = Math.floor(budget / 10);    // budget expressed in $10 units
-      const base  = Math.floor(units / n);
-      const extra = units - base * n;
-      return Array.from({ length: n }, (_, i) => (base + (i < extra ? 1 : 0)) * 10);
+      const share = evenShare(budget, n);
+      return Array.from({ length: n }, () => share);
     }
 
     let splittingInProgress = false;
@@ -799,25 +812,24 @@
         document.getElementById('remaining-text').style.color = 'var(--error)';
         err.textContent = `Over budget by $${(total - BUDGET).toLocaleString()}`;
         err.style.color = 'var(--error)';
-      } else if (total === DISTRIBUTABLE_AMOUNT) {
+      } else if (total >= DISTRIBUTABLE_AMOUNT) {
+        // Everything the $10 grid can place is placed. Whatever is still in
+        // hand is smaller than an even share and is donated.
         bar.style.backgroundColor = 'var(--success)';
         document.getElementById('remaining-text').style.color = 'var(--success)';
-        err.textContent = MAX_CHARITY > 0
-          ? `$${MAX_CHARITY} cannot be split into the available denominations and will go to charity.`
+        err.textContent = remaining > 0
+          ? `$${remaining.toLocaleString()} cannot be split evenly ${teammates.length} ways and will be donated to charity.`
           : '';
         err.style.color = 'var(--text-secondary)';
-      } else if (remaining >= 10) {
-        // Any leftover ≥ $10 must be allocated to a teammate — it can't go to charity.
+      } else {
+        // Still short of what an even split would hand out.
+        const shortfall = DISTRIBUTABLE_AMOUNT - total;
         bar.style.backgroundColor = 'var(--secondary)';
         document.getElementById('remaining-text').style.color = 'var(--error)';
-        err.textContent = `You still have $${remaining.toLocaleString()} to allocate. Amounts of $10 or more must be assigned to a teammate.`;
+        err.textContent = CHARITY > 0
+          ? `You still have $${shortfall.toLocaleString()} to allocate. Only the last $${CHARITY.toLocaleString()} — which cannot be split evenly ${teammates.length} ways — goes to charity.`
+          : `You still have $${shortfall.toLocaleString()} to allocate. Amounts of $10 or more must be assigned to a teammate.`;
         err.style.color = 'var(--error)';
-      } else {
-        // Sub-$10 remainder — only reachable if BUDGET isn't a multiple of 10.
-        bar.style.backgroundColor = 'var(--success)';
-        document.getElementById('remaining-text').style.color = 'var(--text)';
-        err.textContent = `$${remaining} goes to charity (cannot be split into bills).`;
-        err.style.color = 'var(--text-secondary)';
       }
       bar.style.width = pct + '%';
     }
@@ -861,11 +873,14 @@
         showErr(`You are over budget by $${(-diff).toLocaleString()}.`);
         return;
       }
-      // Enforce: total must equal DISTRIBUTABLE_AMOUNT. Any remainder ≥ $10
-      // is required to be allocated to a teammate (can't be donated to charity).
-      if (total !== DISTRIBUTABLE_AMOUNT) {
-        const remaining = BUDGET - total;
-        showErr(`You still have $${remaining.toLocaleString()} unallocated. Amounts of $10 or more must be assigned to a teammate before submitting.`);
+      // Enforce: distribute everything an even split could place. Only the
+      // unsplittable CHARITY remainder may be left behind. Mirrors
+      // validateAllocationTotal_ in Code.js, which re-checks server-side.
+      if (total < DISTRIBUTABLE_AMOUNT) {
+        const shortfall = DISTRIBUTABLE_AMOUNT - total;
+        showErr(CHARITY > 0
+          ? `You still have $${shortfall.toLocaleString()} to allocate before submitting. Only the last $${CHARITY.toLocaleString()} — which cannot be split evenly ${teammates.length} ways — is donated to charity.`
+          : `You still have $${shortfall.toLocaleString()} unallocated. Amounts of $10 or more must be assigned to a teammate before submitting.`);
         return;
       }
       // Enforce per-person cap as a final guard (the drag handler also blocks).

@@ -144,3 +144,16 @@ to reconcile with the template (diffs exceed the file sizes).
   materializes on the next `getConfig` after the URL is filled in and pushed.
 - Denominations are US bills `[10, 20, 50, 100]`, $1,000 budget (dollar
   version — the euro/Spain variant is a legacy fork).
+- **An even split gives every teammate the identical share; the unsplittable
+  remainder is donated.** The smallest bill is $10, so on 3, 6 or 7 teammates
+  $1,000 will not divide: 3 teammates get $330 each and $10 goes to charity.
+  The old code spread the leftover across the first few teammates instead
+  (`340/330/330`), which was not cosmetic — `equalShare` was `$1,000 ÷
+  (teamSize − 1)` = `$333.33`, so the first-listed teammate scored a bonus
+  ratio of 1.02 and the rest 0.99, and surname order moved final grades by a
+  point. `equalShare` is now `evenShare_` — the share the app actually asks
+  for — so an even split scores exactly 100.
+  The rule lives in `evenShare_` / `charityRemainder_` /
+  `validateAllocationTotal_` at the top of `Code.js`, **mirrored** in
+  `Index.html` (`evenShare`, `computeEvenSplit`, `updateFooter`). Change both;
+  `test/evenSplit.test.js` pins the shares, the invariants and the server rule.

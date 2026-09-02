@@ -1,3 +1,48 @@
+// ── Allocation rules ───────────────────────────────────────────────────────
+// Mirrored in Index.html (computeEvenSplit / updateFooter). Change both.
+//
+// A reviewer distributes BONUS_BUDGET among their teammates using bills of
+// $10 and up, so every share is a multiple of $10. When the budget will not
+// divide n ways on that grid — 3, 6 or 7 teammates out of $1,000 — the
+// leftover cannot be handed out evenly, and it is donated to charity rather
+// than dumped on one teammate. That last part was a real bug: the odd $10
+// used to go to whoever sorted first, which put their bonus ratio at 1.02 and
+// everyone else's at 0.99, so surname order moved final grades by a point.
+const BONUS_BUDGET   = 1000;
+const MAX_PER_PERSON = 1000;
+
+// The identical share each of n teammates receives from an even split.
+function evenShare_(budget, n) {
+  if (!(n > 0)) return 0;
+  return Math.floor(Math.floor(budget / 10) / n) * 10;
+}
+
+// What an even split cannot place, and therefore goes to charity. Always
+// less than n × $10 — a whole bill per teammate would have been distributable.
+function charityRemainder_(budget, n) {
+  if (!(n > 0)) return 0;
+  return budget - evenShare_(budget, n) * n;
+}
+
+// The submitted total a reviewer with n teammates is allowed to send.
+// Returns null when acceptable, or an error string. Kept free of
+// SpreadsheetApp so it can be unit-tested under Node.
+function validateAllocationTotal_(totalScore, n) {
+  const budget  = BONUS_BUDGET;
+  const minimum = evenShare_(budget, n) * n;
+
+  if (totalScore > budget) {
+    return `Submission rejected: total cannot exceed $${budget.toLocaleString()} (got $${totalScore.toLocaleString()}).`;
+  }
+  if (totalScore < minimum) {
+    const charity = budget - minimum;
+    return charity > 0
+      ? `Submission rejected: you must distribute at least $${minimum.toLocaleString()} (got $${totalScore.toLocaleString()}). Only the $${charity.toLocaleString()} that cannot be split evenly among ${n} teammates may be left to charity.`
+      : `Submission rejected: total must equal $${budget.toLocaleString()} (got $${totalScore.toLocaleString()}). $${budget.toLocaleString()} divides evenly among ${n} teammates, so nothing should be left over.`;
+  }
+  return null;
+}
+
 function gradebookUrl_(ss) {
   const baseUrl = ss.getUrl();
   const gb = ss.getSheetByName('Gradebook');
@@ -308,18 +353,12 @@ function submitPeerEval(data) {
       totalScore += score;
     }
 
-    // Allocation rules (mirror Index.html):
-    //   • total must equal DISTRIBUTABLE = floor(BUDGET/10)*10  ($1,000 with current BUDGET)
-    //   • any sub-$10 remainder is charity; ≥ $10 must go to a teammate
-    //   • no single teammate may receive more than $1,000
-    const BUDGET = 1000;
-    const MAX_PER_PERSON = 1000;
-    const DISTRIBUTABLE = Math.floor(BUDGET / 10) * 10;
-    if (totalScore > BUDGET) {
-      return { success: false, error: `Submission rejected: total cannot exceed $${BUDGET.toLocaleString()} (got $${totalScore.toLocaleString()}).` };
-    }
-    if (totalScore !== DISTRIBUTABLE) {
-      return { success: false, error: `Submission rejected: total must equal $${DISTRIBUTABLE.toLocaleString()} (got $${totalScore.toLocaleString()}). Amounts of $10 or more must be assigned to a teammate, not left over.` };
+    // Allocation rules live in validateAllocationTotal_ at the top of this
+    // file, mirrored in Index.html. A reviewer must distribute everything an
+    // even split can place; only the unsplittable remainder goes to charity.
+    const totalError = validateAllocationTotal_(totalScore, data.teammates.length);
+    if (totalError) {
+      return { success: false, error: totalError };
     }
     for (const t of data.teammates) {
       const score = Number(t.score) || 0;
@@ -553,7 +592,7 @@ function buildFlagOnlyRows_(sorted, sectionSize, scoresReceived, submitters, fla
     const scores = scoresReceived[email] || [];
     const reviewsCount = scores.length;
     const avgBonus = reviewsCount ? scores.reduce((a, b) => a + b, 0) / reviewsCount : 0;
-    const equalShare = teamSize > 1 ? 1000 / (teamSize - 1) : 0;
+    const equalShare = evenShare_(BONUS_BUDGET, teamSize - 1);
     const bonusRatio = equalShare > 0 ? avgBonus / equalShare : 0;
     const flagged = reviewsCount > 0 && equalShare > 0 && bonusRatio < flagThreshold;
     const submitted = submitters.has(email) ? 'Yes' : 'No';
@@ -698,7 +737,11 @@ function buildGradebook_bonusRatio_(gb, sorted, sectionSize, scoresReceived, sub
   // ── Build output rows ──────────────────────────────────────────────────────
   // Grade = MIN(100, ROUND(BonusRatio × 100, 1))
   //   where BonusRatio = avgBonusReceived / equalShare
-  //         equalShare = $1,000 ÷ (teamSize − 1)
+  //         equalShare = the share Split Evenly hands one teammate — see
+  //                      evenShare_. NOT $1,000 ÷ (teamSize − 1): on a team of
+  //                      four that is $333.33, which no distribution of $10
+  //                      bills can hit, so an even split would score 99 and
+  //                      100 would be unreachable.
   //         avgBonusReceived = mean of dollars received from teammates who reviewed
   // Non-submitters get grade 0. Non-submitting teammates simply don't show up in
   // the avg — no imputation needed.
@@ -711,7 +754,7 @@ function buildGradebook_bonusRatio_(gb, sorted, sectionSize, scoresReceived, sub
     const avgBonus = reviewsCount > 0
       ? scores.reduce((a, b) => a + b, 0) / reviewsCount
       : 0;
-    const equalShare = teamSize > 1 ? 1000 / (teamSize - 1) : 0;
+    const equalShare = evenShare_(BONUS_BUDGET, teamSize - 1);
     const submitted = submitters.has(email) ? 'Yes' : 'No';
 
     return [section, p.lastName, p.firstName, teamSize,
@@ -1602,6 +1645,10 @@ function generateTeamReflectionDocs() {
 // Node-only: expose pure helpers for local unit tests. Harmless under GAS.
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
+    BONUS_BUDGET: BONUS_BUDGET,
+    evenShare_: evenShare_,
+    charityRemainder_: charityRemainder_,
+    validateAllocationTotal_: validateAllocationTotal_,
     buildFlagOnlyRows_: buildFlagOnlyRows_,
     folderIdFromConfig_: folderIdFromConfig_,
     hasTeam_: hasTeam_,

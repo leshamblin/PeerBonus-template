@@ -98,7 +98,7 @@ function addGradingBox_(body) {
     .setFontSize(11).setForegroundColor('#0D47A1').setBold(true).setItalic(false);
 
   cell.appendParagraph('')
-    .appendText('Bonus Ratio = Avg Bonus Received ÷ Equal Share,  where Equal Share = $1,000 ÷ (team size − 1).')
+    .appendText('Bonus Ratio = Avg Bonus Received ÷ Equal Share,  where Equal Share is what one teammate gets from an even split — $1,000 divided by (team size − 1), rounded down to a whole $10 bill. On a team of four that is $330, not $333.33, and the leftover $10 is donated to charity.')
     .setFontSize(10).setForegroundColor('#333333').setBold(false).setItalic(true);
 
   cell.appendParagraph('')
@@ -154,7 +154,7 @@ function addGradingBoxFlagOnly_(cell) {
     .setFontSize(11).setForegroundColor('#0D47A1').setBold(true).setItalic(false);
 
   cell.appendParagraph('')
-    .appendText('Bonus Ratio = Avg Bonus Received ÷ Equal Share,  where Equal Share = $1,000 ÷ (team size − 1). Flagged when Bonus Ratio < ' + (pct / 100) + '.')
+    .appendText('Bonus Ratio = Avg Bonus Received ÷ Equal Share,  where Equal Share is what one teammate gets from an even split — $1,000 divided by (team size − 1), rounded down to a whole $10 bill (on a team of four, $330). Flagged when Bonus Ratio < ' + (pct / 100) + '.')
     .setFontSize(10).setForegroundColor('#333333').setBold(false).setItalic(true);
 
   cell.appendParagraph('')
