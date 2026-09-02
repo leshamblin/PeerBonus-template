@@ -58,6 +58,30 @@ for arg in "$@"; do
   esac
 done
 
+# --deploy confirms per course, which needs a keyboard. Without a terminal —
+# an agent session, a pipe, cron — `read` gets EOF and the old code answered
+# "no" for you: it printed SKIPPED DEPLOY for every course while otherwise
+# looking like a normal successful run, so nothing deployed and it did not
+# look like a failure. Refuse up front instead, before anything is copied.
+if $DEPLOY && [[ ! -t 0 ]]; then
+  cat >&2 <<'MSG'
+ERROR: --deploy needs a real terminal to ask its per-course confirmation.
+       Nothing was synced, pushed or deployed.
+
+       Either run it yourself in Terminal:
+         ./sync.sh --push --deploy
+
+       …or push here and deploy one course explicitly:
+         ./sync.sh --push
+         cd ../<course-folder>
+         clasp deploy --deploymentId "$(cat deployment-id.txt)"
+
+       Passing the deployment ID reuses the live URL. A bare `clasp deploy`
+       mints a new one and breaks the Moodle link.
+MSG
+  exit 1
+fi
+
 if [[ ${#COURSES[@]} -eq 0 ]]; then
   echo "No courses registered yet — add template-descendant folders to COURSES in $0"
   exit 0
