@@ -52,6 +52,16 @@ surviving in the copied Config tab).
    **🚀 Set Up Sheet (first run)** (authorize when prompted) →
    **📁 Set Up Output Folders** (creates this course's own Summaries/Reflections
    folders and writes their IDs into Config).
+
+   **Reload the sheet first.** `clasp create` makes the sheet empty; `onOpen`
+   only runs on open, so a tab that was already open when you pushed has no
+   Peer Eval Admin menu. Cmd-R and it appears.
+
+   Both functions also run from the editor's Run button — they take the UI
+   through `uiOrNull_()` and fall back to `Logger.log`, so the result shows up
+   in the execution log instead of an alert. Before that guard existed they
+   threw *"Cannot call SpreadsheetApp.getUi() from this context"* and created
+   nothing (`test/uiOptional.test.js` pins it).
 6. Paste the real roster into the Roster tab (First Name, Last Name, Email,
    Team) — keep the Testdata team for admin demos.
 7. Config tab: set `admin_whitelist` (instructor + leshamb2 + pcom).

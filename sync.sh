@@ -39,6 +39,7 @@ COURSES=(
   # "$PROG_DIR/<Instructor>-Bonus-<Course>"
   "$PROG_DIR/Haroon-Bonus-MBA590"        # MBA 590 (Haroon Abbu); flag_only grading
   "$PROG_DIR/Patrice-Bonus-MKT541-631-Fall2026" # MKT-541(631) (Patrice) Fall 2026; bonus_ratio
+  "$PROG_DIR/Ross-Bonus-462-Fall2026"    # BUS 462 (001 & 002) (Ross) Fall 2026; bonus_ratio
 )
 
 SHARED_FILES=(

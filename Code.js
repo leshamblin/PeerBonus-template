@@ -462,13 +462,31 @@ function onOpen() {
     .addToUi();
 }
 
+// SpreadsheetApp.getUi() exists only in a container UI context — a menu click
+// or onOpen. Anywhere else it throws "Cannot call SpreadsheetApp.getUi() from
+// this context." That includes the editor's Run button, which is how the
+// first-run functions get called on a fresh copy: the sheet is created empty by
+// `clasp create`, so the Peer Eval Admin menu doesn't exist until the sheet is
+// reloaded after the first push. Take the UI defensively and report through the
+// execution log when there isn't one. Same shape as generateGradebook().
+function uiOrNull_() {
+  try { return SpreadsheetApp.getUi(); } catch (_) { return null; }
+}
+
+function notify_(ui, title, message) {
+  if (ui) ui.alert(title, message, ui.ButtonSet.OK);
+  else    Logger.log(title + '\n\n' + message);
+}
+
 /**
  * First-run setup: creates Config (with defaults), Roster (empty with headers),
  * and Responses (empty with headers) tabs if they don't already exist. Idempotent —
  * safe to re-run; existing tabs are left alone.
+ *
+ * Runnable from the Apps Script editor as well as the menu (see uiOrNull_).
  */
 function setupSheet() {
-  const ui = SpreadsheetApp.getUi();
+  const ui = uiOrNull_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const created = [];
   const existed = [];
@@ -508,7 +526,7 @@ function setupSheet() {
          '1. Open the Roster tab and paste in your class roster (First Name, Last Name, Email, Team).\n' +
          '2. Optionally edit Config values (app_title, instructions, instructors).\n' +
          '3. Deploy the web app: Deploy → New deployment → Web app.';
-  ui.alert('Setup complete', msg, ui.ButtonSet.OK);
+  notify_(ui, 'Setup complete', msg);
 }
 
 // Config may store a Drive folder as a full URL (the default written by
@@ -524,8 +542,9 @@ function folderIdFromConfig_(value) {
   return v;                                          // already a bare ID
 }
 
+// Also runnable from the editor — see uiOrNull_.
 function setupFolders() {
-  const ui = SpreadsheetApp.getUi();
+  const ui = uiOrNull_();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   const ssFile = DriveApp.getFileById(ss.getId());
@@ -576,12 +595,11 @@ function setupFolders() {
   }
 
   const lines = [
-    '📁 Folders ready!\n',
     (summaryCreated ? '✅ Created' : '• Already existed') + ': ' + summaryName,
     (reflectionsCreated ? '✅ Created' : '• Already existed') + ': ' + reflectionsName,
     '\nConfig updated with Reflections folder ID.'
   ];
-  ui.alert(lines.join('\n'));
+  notify_(ui, '📁 Folders ready', lines.join('\n'));
 }
 
 // Pure, side-effect-free row builder for the flag-only grading mode.
@@ -1653,6 +1671,8 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     BONUS_BUDGET: BONUS_BUDGET,
     SMALLEST_BILL: SMALLEST_BILL,
+    uiOrNull_: uiOrNull_,
+    notify_: notify_,
     evenShare_: evenShare_,
     charityRemainder_: charityRemainder_,
     validateAllocationTotal_: validateAllocationTotal_,
