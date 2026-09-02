@@ -3,10 +3,26 @@
 # Never copies per-course files (config.js, .clasp.json, deployment-id.txt,
 # appsscript.json, SETUP-NOTES.md).
 #
-# Only template-descendant apps belong in COURSES. The legacy forks
-# (Eda-MBA540-Bonus, DonW-Bonus-MBA544-*, Patrice-Bonus-*) predate the
-# template and are code-incompatible — never add them. See README.md
-# ("Freeze-and-migrate policy").
+# Only template-descendant apps belong in COURSES. The legacy forks predate
+# the template and are code-incompatible — never add them. See README.md
+# ("Freeze-and-migrate policy"). As of 2026-09-02 the frozen forks are
+# Eda-MBA540-Bonus, DonW-Bonus-MBA544-001/601, TimKraft-Bonus-Demo, and
+# Patrice-Bonus-462-003/462-601/462-601-SummerI/464-Spain/469/566.
+#
+# Judge by lineage, not by folder name. Patrice-Bonus-MKT541-631-Fall2026 is
+# registered below and belongs there: it was created from this template and
+# only matches the legacy "Patrice-Bonus-*" shape by coincidence. Do not
+# remove it while tidying. A descendant carries resolveRosterView_, which no
+# legacy fork has, so run this from THIS folder to list every descendant
+# that is not yet registered (no output means all of them are):
+#
+#   (cd .. && for d in */Code.js; do
+#      grep -q resolveRosterView_ "$d" \
+#        && ! grep -q "${d%/Code.js}" PeerBonus-template/sync.sh \
+#        && echo "UNREGISTERED: ${d%/Code.js}"
+#    done)
+#
+# An unregistered course silently stops receiving fixes.
 set -euo pipefail
 
 TEMPLATE_DIR="$(cd "$(dirname "$0")" && pwd)"
