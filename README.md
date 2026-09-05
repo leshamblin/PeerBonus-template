@@ -6,10 +6,9 @@ dollar version). All course branding lives in **config.js** — the shared code
 files are identical across every course copy, which is what makes sync work.
 
 ## Template IDs
-- **Script ID:** `1ACmHPLWz5XWcpCg3aEixvzwdx-7_Mjdmfw7zYnaME-DtDaViW39tUwT9`
-- **Spreadsheet ID:** `1g_oucKv47QlUPSoHDQiiqio6KIp8aI1az8DdYKihzZA`
-- Sheet: https://docs.google.com/spreadsheets/d/1g_oucKv47QlUPSoHDQiiqio6KIp8aI1az8DdYKihzZA/edit
-- Editor: https://script.google.com/d/1ACmHPLWz5XWcpCg3aEixvzwdx-7_Mjdmfw7zYnaME-DtDaViW39tUwT9/edit?authuser=pcom_instructional_design@ncsu.edu
+
+The template's own script and Sheet ids live in `LOCAL-IDS.md`, which is not
+tracked. Every course copy gets its own pair at `clasp create` time.
 
 Owned by `pcom_instructional_design@ncsu.edu` (clasp is logged in as pcom).
 Always append `?authuser=pcom_instructional_design@ncsu.edu` to editor links

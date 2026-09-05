@@ -7,3 +7,6 @@
 # Per-course Apps Script binding: script id + parent Sheet id.
 # Each course copy has its own; it does not belong in the template repo.
 .clasp.json
+
+# Template script/Sheet ids. Internal; see LOCAL-IDS.md.
+LOCAL-IDS.md
